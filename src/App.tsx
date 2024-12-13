@@ -9,14 +9,14 @@ import NotFound from "./pages/NotFound";
 
 const App: React.FC = () => {
   return (
-    <Router>
+    <Router basename="/literature">
       <Routes>
         <Route path="/" element={<AppLayout />}>
           <Route index element={<Home />} />
           <Route path="books" element={<BookSearchPage />} />
           <Route path="poems" element={<PoemsPage />} />
           <Route path="resources" element={<Resources />} />
-          
+          <Route path="not-found" element={<NotFound />} />
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>
