@@ -241,3 +241,20 @@ button svg {
   display: none;
  }
 
+.ant-carousel .slick-dots li.slick-active button {
+  background-color: gray; 
+}
+
+.ant-carousel .slick-dots li button {
+  background-color: #a9a9a9; 
+}
+
+.ant-carousel .slick-prev, 
+.ant-carousel .slick-next {
+  color: #1D4ED8; 
+}
+
+.ant-carousel .slick-prev:hover, 
+.ant-carousel .slick-next:hover {
+  color: #2563EB;
+}

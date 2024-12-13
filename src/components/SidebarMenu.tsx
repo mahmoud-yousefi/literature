@@ -1,6 +1,6 @@
 import React from "react";
 import { Menu } from "antd";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import {
   HomeOutlined,
   GlobalOutlined,
@@ -13,23 +13,29 @@ interface MenuItem {
   label: string;
   icon: React.ReactNode;
   path: string;
+  title: string;
 }
 
-const menuItems: MenuItem[] = [
-  { key: "1", label: "Home", icon: <HomeOutlined />, path: "/" },
+export const menuItems: MenuItem[] = [
+  { key: "home", label: "صفحه اصلی", icon: <HomeOutlined />, path: "/", title: "صفحه اصلی" },
   {
-    key: "2",
-    label: "Explore Cultures",
+    key: "books",
+    label: "جستجوی کتاب",
     icon: <GlobalOutlined />,
-    path: "/explore",
+    path: "/books",
+    title: "جستجوی کتاب",
   },
-  { key: "3", label: "Cultural Quiz", icon: <ReadOutlined />, path: "/quiz" },
-  { key: "4", label: "Resources", icon: <BookOutlined />, path: "/resources" },
+  { key: "poems", label: "اشعار", icon: <ReadOutlined />, path: "/poems", title: "اشعار" },
+  { key: "resources", label: "منابع", icon: <BookOutlined />, path: "/resources", title: "منابع" },
 ];
 
 const SidebarMenu: React.FC = () => {
+  const location = useLocation();
+
+  const selectedKey = menuItems.find(item => item.path === location.pathname)?.key;
+
   return (
-    <Menu theme="dark" mode="inline" defaultSelectedKeys={["1"]}>
+    <Menu theme="dark" mode="inline" selectedKeys={[selectedKey || "home"]} style={{backgroundColor: localStorage.getItem('theme') === 'light'? '#1F3A8A' : '#737C9B'}}>
       {menuItems.map((item) => (
         <Menu.Item key={item.key} icon={item.icon}>
           <Link to={item.path}>{item.label}</Link>

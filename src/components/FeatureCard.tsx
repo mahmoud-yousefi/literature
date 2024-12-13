@@ -19,24 +19,31 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
   link,
 }) => {
   return (
-    <div>
+    <div className="w-full h-full">
       <Card
         hoverable
-        className="shadow-lg w-full h-full rtl"
-        cover={<img alt={altText} src={imageSrc} className="w-5" />}
+        className="shadow-lg w-full h-full rtl dark:bg-gray-800 dark:text-white"
+        cover={<img alt={altText} src={imageSrc} className="object-cover" />}
       >
         <Card.Meta
           avatar={icon}
           title={
             link ? (
-              <a href={link} target="_blank" rel="noopener noreferrer" className="text-blue-600">
+              <a
+                href={link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
+              >
                 {title}
               </a>
             ) : (
-              <span>{title}</span>
+              <span className="text-black dark:text-white">{title}</span>
             )
           }
-          description={description}
+          description={
+            <p className="text-gray-600 dark:text-gray-300">{description}</p>
+          }
         />
       </Card>
     </div>
