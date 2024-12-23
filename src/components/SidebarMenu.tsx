@@ -35,7 +35,7 @@ const SidebarMenu: React.FC = () => {
   const selectedKey = menuItems.find(item => item.path === location.pathname)?.key;
 
   return (
-    <Menu theme="dark" mode="inline" selectedKeys={[selectedKey || "home"]} style={{backgroundColor: localStorage.getItem('theme') === 'light'? '#1F3A8A' : '#737C9B'}}>
+    <Menu theme="dark" mode="inline" selectedKeys={[selectedKey || "home"]} className="bg-gray-700 dark:bg-gray-800">
       {menuItems.map((item) => (
         <Menu.Item key={item.key} icon={item.icon}>
           <Link to={item.path}>{item.label}</Link>

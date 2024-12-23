@@ -1,15 +1,37 @@
-import { Button, ConfigProvider, Layout, Drawer } from 'antd';
+import { Button, ConfigProvider, Layout, Drawer, Menu, Dropdown } from 'antd';
 import Sider from 'antd/es/layout/Sider';
 import React, { useState, useEffect } from 'react';
 import SidebarMenu, { menuItems } from './SidebarMenu';
-import { Content, Footer, Header } from 'antd/es/layout/layout';
+import { Content, Footer } from 'antd/es/layout/layout';
 import { Outlet, useLocation } from 'react-router-dom';
-import { BookOutlined, MoonFilled, SunFilled, MenuOutlined } from '@ant-design/icons';
+import { BookOutlined, MoonFilled, SunFilled, MenuOutlined, EditOutlined, LogoutOutlined, UserOutlined } from '@ant-design/icons';
+import HeaderComponent from './HeaderComponent';
 
 const AppLayout: React.FC = () => {
   const [isDarkMode, setIsDarkMode] = useState<boolean | null>(null);
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [userAvatar, setUserAvatar] = useState(null);
+
+  const handleMenuClick = ({ key }: any) => {
+    if (key === 'edit') {
+      console.log('Edit Account');
+    } else if (key === 'logout') {
+      //   Cookies.remove('userAvatar'); // Clear cookie on logout
+      setUserAvatar(null);
+    }
+  };
+
+  const menu = (
+    <Menu onClick={handleMenuClick}>
+      <Menu.Item key="edit" icon={<EditOutlined />}>
+        ویرایش حساب کاربری
+      </Menu.Item>
+      <Menu.Item key="logout" icon={<LogoutOutlined />}>
+        خروج
+      </Menu.Item>
+    </Menu>
+  );
 
   useEffect(() => {
     const handleResize = () => {
@@ -70,15 +92,34 @@ const AppLayout: React.FC = () => {
       }}
     >
       <Layout className="min-h-screen" dir="rtl">
+        <div className='flex items-center fixed left-0 pt-3 z-50'>
+          <Dropdown overlay={menu} placement="bottomLeft" trigger={['click']}>
+            <Button type='text' className="cursor-pointer rounded-full mr-3">
+              {userAvatar ? (
+                <img
+                  src={userAvatar}
+                  alt="User Avatar"
+                  className="w-8 h-8 rounded-full border border-gray-300"
+                />
+              ) : (
+                <UserOutlined className="text-white text-xl" />
+              )}
+            </Button>
+          </Dropdown>
+          {
+            isMobile ? (
+              <Button
+                type="text"
+                className="rounded-full text-xl text-xcolor5"
+                onClick={toggleDrawer}
+              >
+                <MenuOutlined />
+              </Button>
+            ) : null
+          }
+        </div>
         {isMobile ? (
           <>
-            <Button
-              type="text"
-              className="fixed top-5 left-5 p-3 rounded-full text-xl text-xcolor5 z-50"
-              onClick={toggleDrawer}
-            >
-              <MenuOutlined />
-            </Button>
             <Drawer
               closeIcon={false}
               placement="left"
@@ -103,7 +144,7 @@ const AppLayout: React.FC = () => {
             collapsible
             breakpoint="lg"
             collapsedWidth="80"
-            className="bg-gray-800 dark:bg-gray-900"
+            className="bg-gray-700 dark:bg-gray-800"
           >
             <div className="m-4">
               <img
@@ -117,42 +158,39 @@ const AppLayout: React.FC = () => {
         )}
 
         <Layout>
-          <Header className="bg-blue-600 dark:bg-gray-800 text-white py-4 px-6 text-xl font-semibold flex items-center shadow-md animate-fadeIn">
-            <div className="mr-3 text-2xl ml-2">{HeaderIcon as string}</div>
-            {headerTitle}
-          </Header>
+          <HeaderComponent HeaderIcon={HeaderIcon} headerTitle={headerTitle} />
 
           <Content
-            className="px-6 py-4 bg-white dark:bg-gray-900 text-black dark:text-white"
+            className="px-6 py-20 bg-white dark:bg-gray-900 text-black dark:text-white"
           >
             <Outlet />
           </Content>
 
-          <Footer className="fixed bottom-0 w-full bg-gray-800 text-white py-6 mt-auto overflow-hidden dark:bg-gray-900">
+          <Footer className="fixed bottom-0 w-full bg-gray-800/50 dark:bg-gray-900/50 backdrop-blur-md text-white py-4 overflow-hidden shadow-lg border-t border-gray-700">
             <div className="absolute inset-0 -z-10">
-              <div className="wave-animation bg-gradient-to-r from-blue-400 via-blue-600 to-purple-500 opacity-50 h-full"></div>
+              <div className="wave-animation bg-gradient-to-r from-blue-400 via-blue-600 to-purple-500 opacity-40 h-full"></div>
             </div>
             <div className="flex w-full justify-around items-center relative z-10">
-              <p className="text-sm font-extralight">
+              <p className="text-sm font-light">
                 کلیه حقوق محفوظ است &copy; {new Date().getFullYear()}
               </p>
               <a
                 href="https://mahmoud-yousefi.github.io/portfolio/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-blue-400 hover:text-blue-600 transition-colors duration-300"
+                className="text-white hover:text-gray-300 transition-colors duration-300"
               >
                 وب سایت ما
               </a>
             </div>
           </Footer>
-          <div className='h-10' />
+
           <Button
             type='text'
-            className="fixed bottom-5 left-5 p-3 rounded-full text-xcolor5 shadow-md transition-transform transform hover:scale-110"
+            className="fixed bottom-3 left-5 p-3 rounded-full text-xcolor5 shadow-md transition-transform transform hover:scale-110"
             onClick={toggleTheme}
           >
-            {isDarkMode ? <MoonFilled /> : <SunFilled />}
+            {isDarkMode ? <SunFilled /> : <MoonFilled />}
           </Button>
         </Layout>
       </Layout>
