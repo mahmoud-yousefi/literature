@@ -12,7 +12,7 @@ const AppLayout: React.FC = () => {
   const [isDarkMode, setIsDarkMode] = useState<boolean | null>(null);
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const [userAvatar, setUserAvatar] = useState(null);
+  // const [userAvatar, setUserAvatar] = useState(null);
 
   // Modal states
   const [isSignupModalVisible, setIsSignupModalVisible] = useState(false);
@@ -22,7 +22,7 @@ const AppLayout: React.FC = () => {
     if (key === 'edit') {
       console.log('Edit Account');
     } else if (key === 'logout') {
-      setUserAvatar(null);
+      // setUserAvatar(null);
     }
   };
 
@@ -188,7 +188,7 @@ const AppLayout: React.FC = () => {
                   }
                   return isImage;
                 }}
-                onChange={({ file, fileList }) => {
+                onChange={({ file, /* fileList */ }) => {
                   if (file.status === 'done') {
                     notification.success({ message: `${file.name} فایل با موفقیت آپلود شد` });
                   } else if (file.status === 'error') {
