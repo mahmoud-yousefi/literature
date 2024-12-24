@@ -46,22 +46,23 @@ const PoemsPage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4 text-center">صفحه اشعار</h1>
-      <div className="flex flex-col sm:flex-row items-center gap-4 mb-6">
-        <Input
-          placeholder="عنوان شعر، شاعر یا بخشی از متن را وارد کنید..."
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          className="w-full"
-        />
-        <button
-          onClick={handleSearch}
-          className="bg-blue-500 text-white px-4 py-2 rounded w-full sm:w-auto"
-        >
-          جستجو
-        </button>
-      </div>
+    <div className='p-4 bg-gray-50 dark:bg-gray-900'>
+      <div className="max-w-4xl mx-auto">
+        <h1 className="text-2xl font-bold mb-4 text-center pb-4">اشعار استاد</h1>
+        <div className="flex flex-col sm:flex-row items-center gap-4 mb-6">
+          <Input
+            placeholder="عنوان شعر، شاعر یا بخشی از متن را وارد کنید..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className="w-full"
+          />
+          <button
+            onClick={handleSearch}
+            className="bg-blue-500 text-white px-4 py-2 rounded w-full sm:w-auto"
+          >
+            جستجو
+          </button>
+        </div>
         <List
           grid={{
             gutter: 16,
@@ -81,6 +82,7 @@ const PoemsPage: React.FC = () => {
           )}
           locale={{ emptyText: <EmptyState />, }}
         />
+      </div>
     </div>
   );
 };

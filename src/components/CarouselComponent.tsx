@@ -17,7 +17,7 @@ type CarouselProps = {
 
 const CarouselComponent: React.FC<CarouselProps> = ({ slides }) => {
   return (
-    <Carousel autoplay infinite autoplaySpeed={3000} arrows>
+    <Carousel autoplay infinite autoplaySpeed={3000} speed={2000} draggable swipeToSlide>
       {slides.map((slide, index) => (
         <div key={index} className="px-4 sm:px-6 md:px-8 lg:px-12">
           <div className="w-full max-w-md mx-auto py-6 sm:py-8 md:py-12">

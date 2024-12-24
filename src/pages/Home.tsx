@@ -19,7 +19,7 @@ const App: React.FC = () => {
         <Button
           type="primary"
           size="large"
-          onClick={() => navigate('/books')}
+          onClick={() => navigate('/pictures')}
           className="mt-8 px-8 py-3 rounded-xl shadow-lg hover:scale-105 transition-transform duration-300 dark:bg-blue-600 dark:hover:bg-blue-500"
         >
           شروع کنید

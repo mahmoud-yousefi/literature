@@ -2,9 +2,9 @@ import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import AppLayout from "./components/Layout";
 import Home from "./pages/Home";
-import BookSearchPage from "./pages/BookSearchPage";
+import PicturesPage from "./pages/PicturesPage";
 import PoemsPage from "./pages/PoemsPage";
-import Resources from "./pages/Resources";
+import MemoriesPage from "./pages/MemoriesPage";
 import NotFound from "./pages/NotFound";
 
 const App: React.FC = () => {
@@ -13,9 +13,9 @@ const App: React.FC = () => {
       <Routes>
         <Route path="/" element={<AppLayout />}>
           <Route index element={<Home />} />
-          <Route path="books" element={<BookSearchPage />} />
+          <Route path="pictures" element={<PicturesPage />} />
           <Route path="poems" element={<PoemsPage />} />
-          <Route path="resources" element={<Resources />} />
+          <Route path="memories" element={<MemoriesPage />} />
           <Route path="not-found" element={<NotFound />} />
           <Route path="*" element={<NotFound />} />
         </Route>

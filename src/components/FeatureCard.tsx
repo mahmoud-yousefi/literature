@@ -22,8 +22,8 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
     <div className="w-full h-full">
       <Card
         hoverable
-        className="shadow-lg w-full h-full rtl dark:bg-gray-800 dark:text-white"
-        cover={<img alt={altText} src={imageSrc} className="object-cover" />}
+        className="shadow-lg w-full h-[15rem] rtl dark:bg-gray-800 dark:text-white"
+        cover={<img alt={altText} src={imageSrc} className="object-cover h-[7rem] w-full" />}
       >
         <Card.Meta
           avatar={icon}
@@ -42,7 +42,9 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
             )
           }
           description={
-            <p className="text-gray-600 dark:text-gray-300">{description}</p>
+            <p className="text-gray-600 dark:text-gray-300 line-clamp-3">
+              {description}
+            </p>
           }
         />
       </Card>
