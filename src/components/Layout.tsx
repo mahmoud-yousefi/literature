@@ -2,9 +2,9 @@ import { Button, ConfigProvider, Layout, Drawer, Menu, Dropdown, Avatar, Tooltip
 import Sider from 'antd/es/layout/Sider';
 import React, { useState, useEffect } from 'react';
 import SidebarMenu, { menuItems } from './SidebarMenu';
-import { Content } from 'antd/es/layout/layout';
+import { Content, Footer } from 'antd/es/layout/layout';
 import { Outlet, useLocation } from 'react-router-dom';
-import { BookOutlined, MoonFilled, SunFilled, MenuOutlined, EditOutlined, LogoutOutlined, UserOutlined, LoginOutlined, UserAddOutlined, UploadOutlined } from '@ant-design/icons';
+import { BookOutlined, MoonFilled, SunFilled, MenuOutlined, EditOutlined, LogoutOutlined, UserOutlined, LoginOutlined, UserAddOutlined, UploadOutlined, KeyOutlined, LockOutlined } from '@ant-design/icons';
 import HeaderComponent from './HeaderComponent';
 import FooterComponent from './FooterComponent';
 
@@ -92,6 +92,20 @@ const AppLayout: React.FC = () => {
     setIsLoginModalVisible(false);
   };
 
+  const signinOrSignupMenu = (
+    <Menu>
+      <Menu.Item key="1" icon={<LoginOutlined />} onClick={handleLogin}>
+        ورود
+      </Menu.Item>
+      <Menu.Item key="2" icon={<UserAddOutlined />} onClick={() => {
+        setFormHeader('ثبت‌نام');
+        handleSignup();
+      }}>
+        ثبت‌نام
+      </Menu.Item>
+    </Menu>
+  );
+
   const [formHeader, setFormHeader] = useState('ثبت‌نام');
 
   const menu = (
@@ -117,31 +131,6 @@ const AppLayout: React.FC = () => {
       }}
     >
       <Layout className="min-h-screen" dir="rtl">
-        <div className='flex items-center fixed left-0 p-3 z-50 gap-3'>
-          <Tooltip title='ورود' placement="bottom">
-            <Button type='text' className='rounded-full' icon={<LoginOutlined />} onClick={handleLogin}>ورود</Button>
-          </Tooltip>
-          <Tooltip title='ثبت‌نام' placement="bottom">
-            <Button type='text' className='rounded-full' icon={<UserAddOutlined />} onClick={() => {
-              setFormHeader('ثبت‌نام');
-              handleSignup();
-            }}>ثبت‌نام</Button>
-          </Tooltip>
-          <Dropdown overlay={menu} placement="bottomLeft" trigger={['click']}>
-            <Button type='text' icon={<Avatar size={isMobile ? undefined : 45} icon={<UserOutlined />} />} className="cursor-pointer rounded-full" />
-          </Dropdown>
-          {
-            isMobile ? (
-              <Button
-                type="text"
-                className="rounded-full text-xl bg-blue-950 bg-opacity-30 text-xcolor5"
-                onClick={toggleDrawer}
-                icon={<MenuOutlined />}
-              />
-            ) : null
-          }
-        </div>
-
         {/* Signup Modal */}
         <Modal
           title={<div className='text-center pt-4'>{formHeader}</div>}
@@ -290,7 +279,59 @@ const AppLayout: React.FC = () => {
         )}
 
         <Layout>
-          <HeaderComponent HeaderIcon={HeaderIcon} headerTitle={headerTitle} />
+          <HeaderComponent HeaderIcon={HeaderIcon} headerTitle={headerTitle} children={
+            <div className='flex flex-wrap items-center w-full md:ml-20 lg:ml-52 justify-end p-3 z-50 gap-3'>
+              <div className="flex items-center">
+                <div className="block sm:hidden">
+                  <Dropdown overlay={signinOrSignupMenu} trigger={['click']}>
+                    <Button
+                      type="text"
+                      className="rounded-full p-1"
+                      icon={<LockOutlined />}
+                    />
+                  </Dropdown>
+                </div>
+                <div className="hidden sm:flex space-x-2">
+                  <Tooltip title="ورود" placement="bottom">
+                    <Button
+                      type="text"
+                      className="rounded-full px-3 text-white"
+                      icon={<LoginOutlined />}
+                      onClick={handleLogin}
+                    >
+                      ورود
+                    </Button>
+                  </Tooltip>
+                  <Tooltip title="ثبت‌نام" placement="bottom">
+                    <Button
+                      type="text"
+                      className="rounded-full px-3 text-white"
+                      icon={<UserAddOutlined />}
+                      onClick={() => {
+                        setFormHeader('ثبت‌نام');
+                        handleSignup();
+                      }}
+                    >
+                      ثبت‌نام
+                    </Button>
+                  </Tooltip>
+                </div>
+              </div>
+              <Dropdown overlay={menu} placement="bottomLeft" trigger={['click']}>
+                <Button type='text' icon={<Avatar size={isMobile ? undefined : 45} icon={<UserOutlined />} />} className="cursor-pointer rounded-full" />
+              </Dropdown>
+              {
+                isMobile ? (
+                  <Button
+                    type="text"
+                    className="text-xl bg-blue-950 bg-opacity-30 text-xcolor5"
+                    onClick={toggleDrawer}
+                    icon={<MenuOutlined />}
+                  />
+                ) : null
+              }
+            </div>
+          } />
 
           <Content
             className="px-6 py-20 bg-white dark:bg-gray-950 text-black dark:text-white"
@@ -298,15 +339,34 @@ const AppLayout: React.FC = () => {
             <Outlet />
           </Content>
 
-          <FooterComponent />
+          <Footer className="fixed bottom-0 w-full bg-gray-800/50 dark:bg-gray-900/50 bg-red-300 bg-opacity-70 backdrop-blur-md text-white py-4 overflow-hidden px-2 shadow-lg border-t border-gray-700">
+            <div className="absolute inset-0 -z-10">
+              <div className="wave-animation bg-gradient-to-r from-blue-400 via-blue-600 to-purple-500 opacity-40 h-full"></div>
+            </div>
+            <div className="flex w-full gap-1 items-center z-10">
+              <div className='flex justify-around w-full'>
+                <p className="text-sm font-light">
+                  کلیه حقوق محفوظ است &copy; {new Date().getFullYear()}
+                </p>
+                <a
+                  href="https://mahmoud-yousefi.github.io/portfolio/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-white hover:text-gray-300 transition-colors duration-300"
+                >
+                  وب سایت ما
+                </a>
+              </div>
+              <Button
+                type='text'
+                className="p-3 rounded-full md:ml-20 lg:ml-52 text-xcolor5 shadow-md transition-transform transform hover:scale-110"
+                onClick={toggleTheme}
+              >
+                {isDarkMode ? <SunFilled /> : <MoonFilled />}
+              </Button>
+            </div>
+          </Footer>
 
-          <Button
-            type='text'
-            className="fixed bottom-3 left-5 p-3 rounded-full text-xcolor5 shadow-md transition-transform transform hover:scale-110"
-            onClick={toggleTheme}
-          >
-            {isDarkMode ? <SunFilled /> : <MoonFilled />}
-          </Button>
         </Layout>
       </Layout>
     </ConfigProvider>

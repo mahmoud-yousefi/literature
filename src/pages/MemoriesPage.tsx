@@ -51,7 +51,7 @@ const MemoriesPage: React.FC = () => {
   }, [query]);
 
   return (
-    <div className='p-4 bg-gray-50 dark:bg-gray-900'>
+    <div className='p-10 bg-gray-50 dark:bg-gray-900'>
       <div className="max-w-4xl mx-auto">
         <h1 className="text-center text-2xl font-bold pb-4">خاطرات استاد</h1>
         <div className="flex flex-col sm:flex-row items-center gap-4 mb-6">
