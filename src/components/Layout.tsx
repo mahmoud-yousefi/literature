@@ -4,9 +4,8 @@ import React, { useState, useEffect } from 'react';
 import SidebarMenu, { menuItems } from './SidebarMenu';
 import { Content, Footer } from 'antd/es/layout/layout';
 import { Outlet, useLocation } from 'react-router-dom';
-import { BookOutlined, MoonFilled, SunFilled, MenuOutlined, EditOutlined, LogoutOutlined, UserOutlined, LoginOutlined, UserAddOutlined, UploadOutlined, KeyOutlined, LockOutlined } from '@ant-design/icons';
+import { BookOutlined, MoonFilled, SunFilled, MenuOutlined, EditOutlined, LogoutOutlined, UserOutlined, LoginOutlined, UserAddOutlined, UploadOutlined, LockOutlined } from '@ant-design/icons';
 import HeaderComponent from './HeaderComponent';
-import FooterComponent from './FooterComponent';
 
 const AppLayout: React.FC = () => {
   const [isDarkMode, setIsDarkMode] = useState<boolean | null>(null);
