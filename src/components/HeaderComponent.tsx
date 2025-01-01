@@ -2,7 +2,7 @@ import { Header } from 'antd/es/layout/layout';
 
 interface props {
     HeaderIcon: any;
-    headerTitle: string;
+    headerTitle?: string;
     children: any;
 }
 
@@ -14,8 +14,8 @@ const HeaderComponent = ({ HeaderIcon, headerTitle, children }: props) => {
             </div>
             <div className="flex items-center w-full">
                 <div className='flex justify-start'>
-                    <div className="ml-3 flex text-sm md:text-xl items-center justify-center">
-                        {HeaderIcon as string}
+                    <div className="ml-3 flex text-sm md:text-xl items-center justify-center" >
+                        {HeaderIcon}
                     </div>
                     <div className="flex-1 text-xs md:text-xl mt-1">{headerTitle}</div>
                 </div>

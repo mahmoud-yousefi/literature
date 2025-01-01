@@ -32,10 +32,25 @@ export const menuItems: MenuItem[] = [
 const SidebarMenu: React.FC = () => {
   const location = useLocation();
 
-  const selectedKey = menuItems.find(item => item.path === location.pathname)?.key;
+  // Helper to match the dynamic route
+  const getSelectedKey = (): string | undefined => {
+    const matchedItem = menuItems.find((item) => {
+      const dynamicPathPattern = item.path.replace(/:\w+/g, "[^/]+");
+      const regex = new RegExp(`^${dynamicPathPattern}$`);
+      return regex.test(location.pathname);
+    });
+    return matchedItem?.key;
+  };
+
+  const selectedKey = getSelectedKey();
 
   return (
-    <Menu theme="dark" mode="inline"  selectedKeys={[selectedKey || "home"]} className="bg-blue-900 bg-opacity-0 dark:bg-opacity-0 dark:bg-blue-950">
+    <Menu
+      theme="dark"
+      mode="inline"
+      selectedKeys={[selectedKey || "home"]}
+      className="bg-blue-900 bg-opacity-0 dark:bg-opacity-0 dark:bg-blue-950"
+    >
       {menuItems.map((item) => (
         <Menu.Item key={item.key} icon={item.icon}>
           <Link to={item.path}>{item.label}</Link>

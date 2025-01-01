@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Input, List, Card } from 'antd';
+import { Input, List, Card, Button } from 'antd';
 import EmptyState from '../components/EmptyState';
+import { SearchOutlined } from '@ant-design/icons';
 
 type LiteraryResource = {
   id: number;
@@ -51,22 +52,24 @@ const MemoriesPage: React.FC = () => {
   }, [query]);
 
   return (
-    <div className='p-10 bg-gray-50 dark:bg-gray-900'>
+    <div className='p-10 bg-gray-50 dark:bg-gray-900 min-h-screen'>
       <div className="max-w-4xl mx-auto">
         <h1 className="text-center text-2xl font-bold pb-4">خاطرات استاد</h1>
-        <div className="flex flex-col sm:flex-row items-center gap-4 mb-6">
+        <div className="flex flex-col sm:flex-row items-center mb-6">
           <Input
             placeholder="عنوان یا نام نویسنده را وارد کنید..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="w-full sm:w-auto flex-grow"
+            className="w-full dark:bg-gray-700 dark:text-white dark:placeholder:text-white rounded-l-none"
           />
-          <button
+          <Button
+            type="primary"
             onClick={handleSearch}
-            className="bg-blue-500 text-white px-4 py-2 rounded-lg w-full sm:w-auto"
-          >
-            جستجو
-          </button>
+            className="!ml-2 h-full rounded-r-none p-2"
+            icon={
+              <SearchOutlined />
+            }
+          />
         </div>
         <List
           grid={{

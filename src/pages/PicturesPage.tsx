@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Input, Button, List, Card, Modal, Upload, Pagination, notification, Image } from 'antd';
 import { PlusOutlined, SearchOutlined } from '@ant-design/icons';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
 import EmptyState from '../components/EmptyState';
 
 type Picture = {
@@ -10,13 +11,12 @@ type Picture = {
   cover: string;
 };
 
-const mockPictures: Picture[] = Array.from({ length: 30 }, (_, index) => ({
+export const mockPictures: Picture[] = Array.from({ length: 30 }, (_, index) => ({
   id: index + 1,
   title: `عنوان عکس ${index + 1}`,
   author: `نویسنده ${index + 1}`,
   cover: `https://valizadehh.ir/wp-content/uploads/2022/03/photo_%DB%B2%DB%B0%DB%B2%DB%B2-%DB%B0%DB%B3-%DB%B1%DB%B4_%DB%B2%DB%B2-%DB%B5%DB%B9-%DB%B5%DB%B2-2.jpg`,
 }));
-
 
 const PicturesPage: React.FC = () => {
   const [query, setQuery] = useState('');
@@ -24,14 +24,19 @@ const PicturesPage: React.FC = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [newPicture, setNewPicture] = useState<{ title: string; cover: string }>({ title: '', cover: '' });
   const [currentPage, setCurrentPage] = useState(1);
+  const [loading, setLoading] = useState(false);
   const pageSize = 8;
 
+  const navigate = useNavigate();
+
   const handleSearch = () => {
+    setLoading(true); 
     const filteredPictures = mockPictures.filter((picture) =>
       picture.title.includes(query)
     );
     setPictures(filteredPictures);
     setCurrentPage(1);
+    setLoading(false); 
   };
 
   const handleAddPicture = () => {
@@ -40,7 +45,13 @@ const PicturesPage: React.FC = () => {
       setPictures([...pictures, { id: newId, title: newPicture.title, author: 'ناشناس', cover: newPicture.cover }]);
       setNewPicture({ title: '', cover: '' });
       setIsModalVisible(false);
+    } else {
+      notification.error({ message: 'لطفاً همه موارد را وارد کنید.' });
     }
+  };
+
+  const handlePictureClick = (id: number) => {
+    navigate(`/pictures/${id}`);
   };
 
   const paginatedPictures = pictures.slice((currentPage - 1) * pageSize, currentPage * pageSize);
@@ -56,15 +67,13 @@ const PicturesPage: React.FC = () => {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onPressEnter={handleSearch}
-              className="w-full dark:bg-gray-700 dark:text-white dark:placeholder:text-white"
+              className="w-full dark:bg-gray-700 dark:text-white dark:placeholder:text-white rounded-l-none"
             />
             <Button
               type="primary"
               onClick={handleSearch}
-              className="!ml-2 h-full rounded-r-none p-1.5"
-              icon={
-                <SearchOutlined />
-              }
+              className="!ml-2 h-full rounded-r-none p-2"
+              icon={<SearchOutlined />}
             >
             </Button>
           </div>
@@ -76,6 +85,7 @@ const PicturesPage: React.FC = () => {
             sm: 2,
             md: 3,
           }}
+          loading={loading}
           dataSource={[...paginatedPictures, { id: 0, title: '', author: '', cover: '', isAddCard: true }]}
           renderItem={(picture) =>
             picture.isAddCard ? (
@@ -103,6 +113,7 @@ const PicturesPage: React.FC = () => {
                     />
                   }
                   className="dark:bg-gray-800"
+                  onClick={() => handlePictureClick(picture.id)}
                 >
                   <Card.Meta
                     className="dark:text-white"
@@ -121,14 +132,14 @@ const PicturesPage: React.FC = () => {
             pageSize={pageSize}
             total={pictures.length}
             onChange={(page) => setCurrentPage(page)}
-            className="dark:text-white"
+            className="dark:text-white bg-gray-100 rounded-md"
           />
         </div>
       </div>
 
       <Modal
         title={<div className='w-full text-center p-4'>افزودن عکس جدید</div>}
-        visible={isModalVisible}
+        open={isModalVisible}
         onCancel={() => setIsModalVisible(false)}
         onOk={handleAddPicture}
         footer={null}

@@ -3,9 +3,10 @@ import Sider from 'antd/es/layout/Sider';
 import React, { useState, useEffect } from 'react';
 import SidebarMenu, { menuItems } from './SidebarMenu';
 import { Content, Footer } from 'antd/es/layout/layout';
-import { Outlet, useLocation } from 'react-router-dom';
+import { Outlet, useLocation, useParams } from 'react-router-dom';
 import { BookOutlined, MoonFilled, SunFilled, MenuOutlined, EditOutlined, LogoutOutlined, UserOutlined, LoginOutlined, UserAddOutlined, UploadOutlined, LockOutlined } from '@ant-design/icons';
 import HeaderComponent from './HeaderComponent';
+import { mockPictures } from '../pages/PicturesPage';
 
 const AppLayout: React.FC = () => {
   const [isDarkMode, setIsDarkMode] = useState<boolean | null>(null);
@@ -70,10 +71,16 @@ const AppLayout: React.FC = () => {
     setDrawerVisible(!drawerVisible);
   };
 
+  const { id } = useParams();
   const location = useLocation();
   const activeMenuItem = menuItems.find(item => item.path === location.pathname);
-  const headerTitle = activeMenuItem ? activeMenuItem.title : "صفحه اصلی";
-  const HeaderIcon = activeMenuItem?.icon || BookOutlined;
+
+  const headerTitle = () => {
+    if (activeMenuItem) return activeMenuItem.title;
+    const selectedPicture = mockPictures.find((p) => p.id === Number(id));
+    return `جزئیات ${selectedPicture?.title}`
+  };
+  const HeaderIcon = activeMenuItem?.icon || menuItems.find((item) => location.pathname.includes(item.path) && item.path !== '/')?.icon;
 
   const handleSignup = () => {
     setIsSignupModalVisible(true);
@@ -262,9 +269,19 @@ const AppLayout: React.FC = () => {
             collapsible
             breakpoint="lg"
             collapsedWidth="80"
+            // style={{
+            //   overflow: 'auto',
+            //   height: '100vh',
+            //   position: 'fixed',
+            //   insetInlineStart: 0,
+            //   top: 0,
+            //   bottom: 0,
+            //   scrollbarWidth: 'thin',
+            //   scrollbarGutter: 'stable',
+            // }}
             className="bg-blue-900 dark:bg-blue-950"
           >
-            <div className=''>
+            <div className='overflow-hidden h-full'>
               <div className="m-4">
                 <img
                   src="https://cdn.tarhbama.com/1400/Image/2021/11/25/7/filelogo.jpg"
@@ -278,7 +295,7 @@ const AppLayout: React.FC = () => {
         )}
 
         <Layout>
-          <HeaderComponent HeaderIcon={HeaderIcon} headerTitle={headerTitle} children={
+          <HeaderComponent HeaderIcon={HeaderIcon} headerTitle={headerTitle()} children={
             <div className='flex flex-wrap items-center w-full md:ml-20 lg:ml-52 justify-end p-3 z-50 gap-3'>
               <div className="flex items-center">
                 <div className="block sm:hidden">
