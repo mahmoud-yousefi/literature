@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Spin, Input, Button, List, Divider, Avatar, Collapse } from 'antd';
-import { ArrowDownOutlined, ArrowUpOutlined, CoffeeOutlined, LeftOutlined, UserOutlined } from '@ant-design/icons';
+import { CoffeeOutlined, LeftOutlined, UserOutlined } from '@ant-design/icons';
 import EmptyState from '../components/EmptyState';
 import { mockPictures } from './PicturesPage';
 import CarouselComponent from '../components/CarouselComponent';
