@@ -30,7 +30,9 @@ const App: React.FC = () => {
         <h2 className="text-3xl md:text-4xl font-semibold text-center text-gray-800 dark:text-gray-100 mb-12 md:mb-16">
           ویژگی‌های سایت ما را کشف کنید
         </h2>
-        <CarouselComponent slides={slides} />
+        <div className="max-w-screen-md mx-auto">
+          <CarouselComponent slides={slides} featureCardClassName="h-[15rem]" />
+        </div>
       </section>
     </div>
   );

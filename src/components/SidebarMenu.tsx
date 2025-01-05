@@ -32,14 +32,15 @@ export const menuItems: MenuItem[] = [
 const SidebarMenu: React.FC = () => {
   const location = useLocation();
 
-  // Helper to match the dynamic route
   const getSelectedKey = (): string | undefined => {
     const matchedItem = menuItems.find((item) => {
       const dynamicPathPattern = item.path.replace(/:\w+/g, "[^/]+");
       const regex = new RegExp(`^${dynamicPathPattern}$`);
       return regex.test(location.pathname);
     });
-    return matchedItem?.key;
+
+    if(matchedItem?.key) return matchedItem?.key;
+    else return location.pathname.split('/')[1];
   };
 
   const selectedKey = getSelectedKey();

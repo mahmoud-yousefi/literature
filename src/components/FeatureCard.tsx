@@ -8,6 +8,7 @@ interface FeatureCardProps {
   altText: string;
   icon: ReactNode;
   link?: string;
+  featureCardClassName: string;
 }
 
 const FeatureCard: React.FC<FeatureCardProps> = ({
@@ -17,13 +18,14 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
   altText,
   icon,
   link,
+  featureCardClassName
 }) => {
   return (
     <div className="w-full h-full">
       <Card
         hoverable
-        className="shadow-lg w-full h-[25rem] rtl dark:bg-gray-800 dark:text-white"
-        cover={<img alt={altText} src={imageSrc} className="object-cover h-[15rem] w-full" />}
+        className="shadow-lg w-full rtl dark:bg-gray-800 dark:text-white"
+        cover={<img alt={altText} src={imageSrc} className={`object-cover ${featureCardClassName} w-full`} />}
       >
         <Card.Meta
           avatar={icon}
