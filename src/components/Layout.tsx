@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import SidebarMenu, { menuItems } from './SidebarMenu';
 import { Content, Footer } from 'antd/es/layout/layout';
 import { Outlet, useLocation, useParams } from 'react-router-dom';
-import { MoonFilled, SunFilled, MenuOutlined, EditOutlined, LogoutOutlined, UserOutlined, LoginOutlined, UserAddOutlined, UploadOutlined, LockOutlined } from '@ant-design/icons';
+import { MoonFilled, SunFilled, MenuOutlined, EditOutlined, LogoutOutlined, UserOutlined, LoginOutlined, UserAddOutlined, UploadOutlined, LockOutlined, LinkOutlined } from '@ant-design/icons';
 import HeaderComponent from './HeaderComponent';
 import { mockPictures } from '../pages/PicturesPage';
 
@@ -128,6 +128,8 @@ const AppLayout: React.FC = () => {
     </Menu>
   );
 
+  const [collapsed, setCollapsed] = useState(false);
+
   return (
     <ConfigProvider
       theme={{
@@ -136,7 +138,7 @@ const AppLayout: React.FC = () => {
         },
       }}
     >
-      <Layout className="min-h-screen" dir="rtl">
+      <Layout className="min-h-screen dark:bg-gray-900" dir="rtl">
         {/* Signup Modal */}
         <Modal
           title={<div className='text-center pt-4'>{formHeader}</div>}
@@ -269,17 +271,8 @@ const AppLayout: React.FC = () => {
             collapsible
             breakpoint="lg"
             collapsedWidth="80"
-            // style={{
-            //   overflow: 'auto',
-            //   height: '100vh',
-            //   position: 'fixed',
-            //   insetInlineStart: 0,
-            //   top: 0,
-            //   bottom: 0,
-            //   scrollbarWidth: 'thin',
-            //   scrollbarGutter: 'stable',
-            // }}
-            className="bg-blue-900 dark:bg-blue-950"
+            className="bg-blue-900 dark:bg-blue-950 fixed h-full z-50"
+            onCollapse={(collapsedState) => setCollapsed(collapsedState)}
           >
             <div className='overflow-hidden h-full'>
               <div className="m-4">
@@ -294,60 +287,64 @@ const AppLayout: React.FC = () => {
           </Sider>
         )}
 
-        <Layout>
-          <HeaderComponent HeaderIcon={HeaderIcon} headerTitle={headerTitle()} children={
-            <div className='flex flex-wrap items-center w-full md:ml-20 lg:ml-52 justify-end p-3 z-50 gap-3'>
-              <div className="flex items-center">
-                <div className="block sm:hidden">
-                  <Dropdown overlay={signinOrSignupMenu} trigger={['click']}>
-                    <Button
-                      type="text"
-                      className="rounded-full p-1"
-                      icon={<LockOutlined />}
-                    />
-                  </Dropdown>
-                </div>
-                <div className="hidden sm:flex space-x-2">
-                  <Tooltip title="ورود" placement="bottom">
-                    <Button
-                      type="text"
-                      className="rounded-full px-3 text-white"
-                      icon={<LoginOutlined />}
-                      onClick={handleLogin}
-                    >
-                      ورود
-                    </Button>
-                  </Tooltip>
-                  <Tooltip title="ثبت‌نام" placement="bottom">
-                    <Button
-                      type="text"
-                      className="rounded-full px-3 text-white"
-                      icon={<UserAddOutlined />}
-                      onClick={() => {
-                        setFormHeader('ثبت‌نام');
-                        handleSignup();
-                      }}
-                    >
-                      ثبت‌نام
-                    </Button>
-                  </Tooltip>
-                </div>
-              </div>
-              <Dropdown overlay={menu} placement="bottomLeft" trigger={['click']}>
-                <Button type='text' icon={<Avatar size={isMobile ? undefined : 45} icon={<UserOutlined />} />} className="cursor-pointer rounded-full" />
+        <div className='flex flex-wrap items-center fixed left-0 top-1 justify-end py-3 pl-6 pr-32 z-50 gap-3'>
+          <div className="flex items-center">
+            <div className="block sm:hidden">
+              <Dropdown overlay={signinOrSignupMenu} trigger={['click']}>
+                <Button
+                  type="text"
+                  className="rounded-full p-1"
+                  icon={<LockOutlined />}
+                />
               </Dropdown>
-              {
-                isMobile ? (
-                  <Button
-                    type="text"
-                    className="text-xl bg-blue-950 bg-opacity-30 text-xcolor5"
-                    onClick={toggleDrawer}
-                    icon={<MenuOutlined />}
-                  />
-                ) : null
-              }
             </div>
-          } />
+            <div className="hidden sm:flex space-x-2">
+              <Tooltip title="ورود" placement="bottom">
+                <Button
+                  type="text"
+                  className="rounded-full px-3 text-white"
+                  icon={<LoginOutlined />}
+                  onClick={handleLogin}
+                >
+                  ورود
+                </Button>
+              </Tooltip>
+              <Tooltip title="ثبت‌نام" placement="bottom">
+                <Button
+                  type="text"
+                  className="rounded-full px-3 text-white"
+                  icon={<UserAddOutlined />}
+                  onClick={() => {
+                    setFormHeader('ثبت‌نام');
+                    handleSignup();
+                  }}
+                >
+                  ثبت‌نام
+                </Button>
+              </Tooltip>
+            </div>
+          </div>
+          <Dropdown overlay={menu} placement="bottomLeft" trigger={['click']}>
+            <Button type='text' icon={<Avatar size={isMobile ? undefined : 45} icon={<UserOutlined />} />} className="cursor-pointer rounded-full" />
+          </Dropdown>
+          {
+            isMobile ? (
+              <Button
+                type="text"
+                className="text-xl bg-blue-950 bg-opacity-30 text-xcolor5"
+                onClick={toggleDrawer}
+                icon={<MenuOutlined />}
+              />
+            ) : null
+          }
+        </div>
+
+        <Layout
+          className='transition-all duration-300'
+          style={{
+            marginRight: !isMobile ? (collapsed ? "80px" : "200px") : undefined,
+          }}>
+          <HeaderComponent HeaderIcon={HeaderIcon} headerTitle={headerTitle()} />
 
           <Content
             className="px-6 py-20 bg-white dark:bg-gray-950 text-black dark:text-white"
@@ -360,29 +357,26 @@ const AppLayout: React.FC = () => {
               <div className="wave-animation bg-gradient-to-r from-blue-400 via-blue-600 to-purple-500 opacity-40 h-full"></div>
             </div>
             <div className="flex w-full gap-1 items-center z-10">
-              <div className='flex justify-around w-full'>
-                <p className="text-sm font-light">
-                  کلیه حقوق محفوظ است &copy; {new Date().getFullYear()}
-                </p>
+              <div className='flex justify-between w-full'>
                 <a
                   href="https://mahmoud-yousefi.github.io/portfolio/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-white hover:text-gray-300 transition-colors duration-300"
+                  className="text-white hover:text-gray-300 transition-colors duration-300 flex items-center gap-2"
                 >
                   وب سایت ما
+                  <LinkOutlined />
                 </a>
               </div>
-              <Button
-                type='text'
-                className="p-3 rounded-full md:ml-20 lg:ml-52 text-xcolor5 shadow-md transition-transform transform hover:scale-110"
-                onClick={toggleTheme}
-              >
-                {isDarkMode ? <SunFilled /> : <MoonFilled />}
-              </Button>
             </div>
           </Footer>
-
+          <Button
+            type='text'
+            className="p-3 rounded-full text-xcolor5 shadow-md transition-transform transform hover:scale-110 fixed left-3 bottom-3 z-40"
+            onClick={toggleTheme}
+          >
+            {isDarkMode ? <SunFilled /> : <MoonFilled />}
+          </Button>
         </Layout>
       </Layout>
     </ConfigProvider>

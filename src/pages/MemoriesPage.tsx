@@ -83,22 +83,22 @@ const MemoriesPage: React.FC = () => {
     <div className='p-10 bg-gray-50 dark:bg-gray-900 min-h-screen'>
       <div className="max-w-4xl mx-auto">
         <h1 className="text-center text-2xl font-bold pb-4">خاطرات استاد</h1>
-        <div className="flex flex-col sm:flex-row items-center mb-6">
+        <div className="flex w-full items-center mb-6">
           <Input
             placeholder="عنوان یا نام نویسنده را وارد کنید..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
+            onPressEnter={handleSearch}
             className="w-full dark:bg-gray-700 dark:text-white dark:placeholder:text-white rounded-l-none"
           />
           <Button
             type="primary"
             onClick={handleSearch}
             className="!ml-2 h-full rounded-r-none p-2"
-            icon={
-              <SearchOutlined />
-            }
-          />
-        </div>
+            icon={<SearchOutlined />}
+          >
+          </Button>
+        </div>        
         <List
           grid={{
             gutter: 16,

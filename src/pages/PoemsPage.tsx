@@ -75,12 +75,17 @@ const PoemsPage: React.FC = () => {
     }
   };
 
+  React.useEffect(() => {
+    if (!query)
+      handleSearch();
+  }, [query]);
+
   const paginatedPoems = poems.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   return (
     <div className="p-10 bg-gray-50 min-h-screen dark:bg-gray-900">
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-2xl font-bold mb-4 text-center text-gray-900 dark:text-white">لیست اشعار</h1>
+        <h1 className="text-2xl font-bold !mb-4 text-center text-gray-900 dark:text-white">لیست اشعار</h1>
         <div className="flex items-center mb-6">
           <Input
             placeholder="جستجو بر اساس عنوان، شاعر یا متن شعر..."
@@ -156,7 +161,7 @@ const PoemsPage: React.FC = () => {
             className="mb-4"
           />
           <Input
-            placeholder="عنوان شعر"
+            placeholder="شاعر"
             value={newPoem.poet}
             onChange={(e) => setNewPoem((prev) => ({ ...prev, poet: e.target.value }))}
             className="mb-4"

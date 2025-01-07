@@ -3,10 +3,9 @@ import { Header } from 'antd/es/layout/layout';
 interface props {
     HeaderIcon: any;
     headerTitle?: string;
-    children: any;
 }
 
-const HeaderComponent = ({ HeaderIcon, headerTitle, children }: props) => {
+const HeaderComponent = ({ HeaderIcon, headerTitle }: props) => {
     return (
         <Header className="fixed px-3 w-full xs:h-10 lg:h-auto z-40 bg-gray-600/60 dark:bg-gray-800/60 backdrop-blur-lg text-white py-4 text-xl font-semibold flex items-center shadow-lg transition-all duration-300 overflow-hidden">
             <div className="absolute inset-0 -z-10">
@@ -20,7 +19,6 @@ const HeaderComponent = ({ HeaderIcon, headerTitle, children }: props) => {
                     <div className="flex-1 text-xs md:text-xl mt-1">{headerTitle}</div>
                 </div>
             </div>
-            {children}
         </Header>
     );
 };
