@@ -26,6 +26,7 @@ const PictureDetailPage: React.FC = () => {
     const [comments, setComments] = useState<UserComment[]>([]);
     const [newComment, setNewComment] = useState('');
     const [isCommentsExpanded, setIsCommentsExpanded] = useState(false);
+    const [isUnverifiedCommentsExpanded, setIsUnverifiedCommentsExpanded] = useState(false);
     const [isRelatedContentExpanded, setRelatedContentExpanded] = useState(false);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [newPicture, setNewPicture] = useState<{ title: string; cover: string }>({ title: '', cover: '' });
@@ -54,6 +55,10 @@ const PictureDetailPage: React.FC = () => {
         setIsCommentsExpanded((prevState) => !prevState);
     };
 
+    const toggleUnverifiedCommentsVisibility = () => {
+        setIsUnverifiedCommentsExpanded((prevState) => !prevState);
+    };
+
     const toggleRelatedContentVisibility = () => {
         setRelatedContentExpanded((prevState) => !prevState);
     };
@@ -66,7 +71,7 @@ const PictureDetailPage: React.FC = () => {
             }
 
             setPicture((prev) => ({
-                ...(prev as Picture), // Ensures TypeScript recognizes `prev` as a `Picture`
+                ...(prev as Picture),
                 title: newPicture.title,
                 author: 'ناشناس',
                 cover: newPicture.cover,
@@ -202,13 +207,13 @@ const PictureDetailPage: React.FC = () => {
                         <Collapse
                             className="mt-4"
                             expandIconPosition="start"
-                            activeKey={isCommentsExpanded ? ['relatedContents'] : []}
-                            onChange={() => toggleCommentsVisibility()}
+                            activeKey={isUnverifiedCommentsExpanded ? ['unverifiedComments'] : []}
+                            onChange={() => toggleUnverifiedCommentsVisibility()}
                             ghost
                             expandIcon={({ isActive }) => <LeftOutlined rotate={isActive ? 90 : 0} className='dark:!text-white dark:!font-bold' />}
                         >
                             <Collapse.Panel
-                                key="relatedContents"
+                                key="unverifiedComments"
                                 header={
                                     <Button
                                         type="link"
