@@ -3,38 +3,15 @@ import { Input, List, Card, Button, notification, Pagination, Modal } from 'antd
 import EmptyState from '../components/EmptyState';
 import { PlusOutlined, SearchOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
+import { mockMemories } from '../utils';
 
-type LiteraryMemory = {
+export type LiteraryMemory = {
   id: number;
   title: string;
   author: string;
   description: string;
   cover: string;
 };
-
-const mockMemories: LiteraryMemory[] = [
-  {
-    id: 1,
-    title: 'بوستان سعدی',
-    author: 'سعدی شیرازی',
-    description: 'یکی از ارزشمندترین آثار ادبی فارسی که شامل نصایح اخلاقی و اشعار زیبا است.',
-    cover: 'https://kaamakketab.com/wp-content/uploads/2020/09/%D8%A8%D9%88%D8%B3%D8%AA%D8%A7%D9%86-%D8%B3%D8%B9%D8%AF%DB%8C-%DA%AF%D9%88%DB%8C%D8%A7.jpg',
-  },
-  {
-    id: 2,
-    title: 'شاهنامه',
-    author: 'فردوسی',
-    description: 'حماسه ملی ایرانیان که تاریخ ایران زمین را در قالب اشعار به تصویر کشیده است.',
-    cover: 'https://negahpub.com/wp-content/uploads/2022/09/Shahnameh1.jpg',
-  },
-  {
-    id: 3,
-    title: 'دیوان حافظ',
-    author: 'حافظ شیرازی',
-    description: 'مجموعه‌ای از اشعار عاشقانه و عارفانه که در دل هر ایرانی جای دارد.',
-    cover: 'https://payamedalat.com/wp-content/uploads/2022/03/%D8%AF%DB%8C%D9%88%D8%A7%D9%86-%D8%AD%D8%A7%D9%81%D8%B8-4.jpg',
-  },
-];
 
 const MemoriesPage: React.FC = () => {
   const [query, setQuery] = useState('');

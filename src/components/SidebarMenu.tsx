@@ -7,6 +7,10 @@ import {
   PictureOutlined,
   CameraOutlined,
 } from "@ant-design/icons";
+import { mockPictures, Picture } from "../pages/PicturesPage";
+import { Poem } from "../pages/PoemsPage";
+import { LiteraryMemory } from "../pages/MemoriesPage";
+import { mockMemories, mockPoems } from "../utils";
 
 interface MenuItem {
   key: string;
@@ -14,19 +18,21 @@ interface MenuItem {
   icon: React.ReactNode;
   path: string;
   title: string;
+  items: Picture[] | Poem[] | LiteraryMemory[];
 }
 
 export const menuItems: MenuItem[] = [
-  { key: "home", label: "صفحه اصلی", icon: <HomeOutlined />, path: "/", title: "صفحه اصلی" },
+  { key: "home", label: "صفحه اصلی", icon: <HomeOutlined />, path: "/", title: "صفحه اصلی", items: [] },
   {
     key: "pictures",
     label: "عکس‌ها",
     icon: <PictureOutlined />,
     path: "/pictures",
     title: "عکس‌ها",
+    items: mockPictures,
   },
-  { key: "poems", label: "اشعار", icon: <ReadOutlined />, path: "/poems", title: "اشعار" },
-  { key: "memories", label: "خاطره‌ها", icon: <CameraOutlined />, path: "/memories", title: "خاطره‌ها" },
+  { key: "poems", label: "اشعار", icon: <ReadOutlined />, path: "/poems", title: "اشعار", items: mockPoems },
+  { key: "memories", label: "خاطره‌ها", icon: <CameraOutlined />, path: "/memories", title: "خاطره‌ها", items: mockMemories },
 ];
 
 const SidebarMenu: React.FC = () => {

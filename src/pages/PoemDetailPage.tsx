@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Spin, Input, Button, List, Divider, Avatar, Collapse, Modal, notification, Upload, Tooltip } from 'antd';
-import { CoffeeOutlined, EditOutlined, LeftOutlined, PlusOutlined, UserOutlined } from '@ant-design/icons';
+import { Spin, Input, Button, List, Divider, Avatar, Collapse, Modal, notification, Tooltip } from 'antd';
+import { CoffeeOutlined, CopyOutlined, EditOutlined, HighlightOutlined, LeftOutlined, LoadingOutlined, UserOutlined } from '@ant-design/icons';
 import EmptyState from '../components/EmptyState';
-import { mockPictures, Picture } from './PicturesPage';
 import CarouselComponent from '../components/CarouselComponent';
-import { slides } from '../utils';
+import { mockPoems, slides } from '../utils';
+import { Poem } from './PoemsPage';
 
 type UserComment = {
     author: string;
@@ -13,22 +13,23 @@ type UserComment = {
     date: string;
 };
 
-const PictureDetailPage: React.FC = () => {
+const PoemDetailPage: React.FC = () => {
     const { id } = useParams();
-    const [picture, setPicture] = useState<Picture | null>(null);
+    const [poem, setPoem] = useState<Poem | null>(null);
     const [comments, setComments] = useState<UserComment[]>([]);
     const [newComment, setNewComment] = useState('');
     const [isCommentsExpanded, setIsCommentsExpanded] = useState(false);
     const [isUnverifiedCommentsExpanded, setIsUnverifiedCommentsExpanded] = useState(false);
     const [isRelatedContentExpanded, setRelatedContentExpanded] = useState(false);
     const [isModalVisible, setIsModalVisible] = useState(false);
-    const [newPicture, setNewPicture] = useState<Omit<Picture, 'id'>>({ title: '', cover: '', author: '' });
+    const [newPoem, setNewPoem] = useState<Omit<Poem, 'id'>>({ title: '', content: '', poet: '' });
+    const [isCopied, setIsCopied] = useState(false);
 
     useEffect(() => {
-        const selectedPicture = mockPictures.find((p) => p.id === Number(id));
+        const selectedPicture = mockPoems.find((p) => p.id === Number(id));
         if (selectedPicture) {
-            setPicture(selectedPicture);
-            setNewPicture(selectedPicture);
+            setPoem(selectedPicture);
+            setNewPoem(selectedPicture);
         }
     }, [id]);
 
@@ -57,17 +58,17 @@ const PictureDetailPage: React.FC = () => {
     };
 
     const handleUpdate = () => {
-        if (picture?.title && picture?.cover && picture?.author && picture?.id) {
-            if (!newPicture || !newPicture.title || !newPicture.cover || !newPicture.author) {
+        if (poem?.title && poem?.content && poem?.poet && poem?.id) {
+            if (!newPoem || !newPoem.title || !newPoem.content || !newPoem.poet) {
                 notification.error({ message: 'لطفاً همه موارد را وارد کنید.' });
                 return;
             }
 
-            setPicture((prev) => ({
-                ...(prev as Picture),
-                title: newPicture.title,
-                author: newPicture.author ?? 'ناشناس',
-                cover: newPicture.cover,
+            setPoem((prev) => ({
+                ...(prev as Poem),
+                title: newPoem.title,
+                content: newPoem.content,
+                poet: newPoem.poet,
             }));
 
             setIsModalVisible(false);
@@ -77,9 +78,24 @@ const PictureDetailPage: React.FC = () => {
         }
     };
 
+    const handleCopy = async () => {
+        try {
+          if (poem?.content) {
+            await navigator.clipboard.writeText(poem.content);
+            setIsCopied(true);
+            setTimeout(() => setIsCopied(false), 1000);
+          } else {
+            notification.error({ message: 'محتوای شعر برای کپی وجود ندارد.' });
+          }
+        } catch (err) {
+          console.error('Failed to copy: ', err);
+          notification.error({ message: 'خطا در کپی کردن محتوا.' });
+        }
+      };
+
     return (
         <div className="flex justify-center items-center min-h-screen bg-gray-100 dark:bg-gray-900 p-4">
-            {!picture ? (
+            {!poem ? (
                 <Spin size="large" tip="Loading..." className="text-blue-500" />
             ) : (
                 <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden w-full max-w-4xl p-6 transition-all duration-300 hover:scale-105">
@@ -94,23 +110,24 @@ const PictureDetailPage: React.FC = () => {
                         />
                     </Tooltip>
 
-                    {/* Image Section */}
-                    <div className="flex justify-center mb-6">
-                        <img
-                            src={picture.cover}
-                            alt={picture.title}
-                            className="rounded-lg object-cover w-full max-w-md h-auto shadow-md transition-transform duration-300 ease-in-out hover:scale-105"
-                        />
-                    </div>
-
-                    {/* Title */}
-                    <h2 className="text-2xl font-semibold text-center text-gray-800 dark:text-white mb-4 hover:text-blue-500 transition-colors">
-                        {picture.title}
+                    <h2 className="text-2xl font-semibold text-center text-gray-800 dark:text-white !mb-6 hover:text-blue-500 transition-colors">
+                        {poem.title}
                     </h2>
 
-                    <p className="text-lg text-center text-gray-600 dark:text-gray-300 flex items-center justify-center gap-2">
+                    <p className="text-lg !my-6 text-gray-600 dark:text-gray-300 flex items-center justify-start gap-2">
                         <UserOutlined className="text-blue-500" />
-                        <strong>نویسنده:</strong> {picture.author}
+                        <strong>شاعر:</strong> {poem.poet}
+                    </p>
+
+                    <p className="text-lg text-gray-600 dark:text-gray-300 flex flex-col gap-2">
+                        <div className='flex gap-2'>
+                            <HighlightOutlined className="text-blue-500" />
+                            <strong>محتوا:</strong>
+                        </div>
+                        <div className='bg-gray-100 dark:bg-gray-700 text-center rounded-md pt-2 pb-6 px-6'>
+                            <div className='flex justify-end w-full'><Button onClick={handleCopy} icon={isCopied ? <LoadingOutlined className='text-gray-900 dark:text-gray-100' /> : <CopyOutlined className='text-gray-900 dark:text-gray-100' />} className='text-gray-900 dark:!text-gray-100' type='text'>{isCopied ? 'کپی شد!' : undefined}</Button></div>
+                            <div>{poem.content}</div>
+                        </div>
                     </p>
 
                     <Divider className="border-y-2 mt-6 dark:border-gray-600" />
@@ -240,7 +257,7 @@ const PictureDetailPage: React.FC = () => {
             )}
 
             <Modal
-                title={<div className='w-full text-center p-4'>ویرایش عکس</div>}
+                title={<div className='w-full text-center p-4'>ویرایش شعر</div>}
                 open={isModalVisible}
                 onCancel={() => setIsModalVisible(false)}
                 onOk={handleUpdate}
@@ -248,58 +265,24 @@ const PictureDetailPage: React.FC = () => {
                 className='p-2'
             >
                 <div className="space-y-4 p-4">
-                    <Upload
-                        listType="picture-card"
-                        showUploadList={false}
-                        beforeUpload={(file) => {
-                            const isImage = file.type.startsWith("image/");
-                            if (!isImage) {
-                                notification.error({ message: "فقط تصاویر مجاز هستند." });
-                                return false;
-                            }
-
-                            const reader = new FileReader();
-                            reader.onload = () => {
-                                setNewPicture((prev) => ({ ...prev, cover: reader.result as string }));
-                            };
-                            reader.readAsDataURL(file);
-                            return false;
-                        }}
-                        className="border-dashed border-2 border-gray-400 rounded-md p-2 flex items-center justify-center"
-                    >
-                        {newPicture.cover ? (
-                            <div className="relative">
-                                <img
-                                    src={newPicture.cover}
-                                    alt="upload"
-                                    className="h-32 w-32 object-cover rounded-md"
-                                />
-                                <button
-                                    onClick={() => setNewPicture((prev) => ({ ...prev, cover: "" }))}
-                                    className="absolute top-0 right-0 text-white bg-black bg-opacity-50 p-1 rounded-full"
-                                >
-                                    ×
-                                </button>
-                            </div>
-                        ) : (
-                            <div className="text-center">
-                                <PlusOutlined className="text-4xl mb-2" />
-                                <div>افزودن تصویر</div>
-                            </div>
-                        )}
-                    </Upload>
+                    <Input
+                        type="text"
+                        placeholder="عتوان"
+                        value={newPoem.title}
+                        onChange={(e) => setNewPoem((prev) => ({ ...prev, title: e.target.value }))}
+                    />
 
                     <Input
                         type="text"
-                        placeholder="نویسنده"
-                        value={newPicture.author}
-                        onChange={(e) => setNewPicture((prev) => ({ ...prev, author: e.target.value }))}
+                        placeholder="شاعر"
+                        value={newPoem.poet}
+                        onChange={(e) => setNewPoem((prev) => ({ ...prev, poet: e.target.value }))}
                     />
 
                     <Input.TextArea
                         placeholder="توضیحات"
-                        value={newPicture.title}
-                        onChange={(e) => setNewPicture((prev) => ({ ...prev, title: e.target.value }))}
+                        value={newPoem.content}
+                        onChange={(e) => setNewPoem((prev) => ({ ...prev, content: e.target.value }))}
                         rows={4}
                         className="mt-4 rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-500"
                     />
@@ -325,4 +308,4 @@ const PictureDetailPage: React.FC = () => {
     );
 };
 
-export default PictureDetailPage;
+export default PoemDetailPage;

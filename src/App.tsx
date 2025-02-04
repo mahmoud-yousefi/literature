@@ -7,6 +7,7 @@ import PictureDetailPage from "./pages/PictureDetailPage";
 import PoemsPage from "./pages/PoemsPage";
 import MemoriesPage from "./pages/MemoriesPage";
 import NotFound from "./pages/NotFound";
+import PoemDetailPage from "./pages/PoemDetailPage";
 
 const App: React.FC = () => {
   return (
@@ -16,6 +17,7 @@ const App: React.FC = () => {
           <Route index element={<Home />} />
           <Route path="pictures" element={<PicturesPage />} />
           <Route path="pictures/:id" element={<PictureDetailPage />} />
+          <Route path="poems/:id" element={<PoemDetailPage />} />
           <Route path="poems" element={<PoemsPage />} />
           <Route path="memories" element={<MemoriesPage />} />
         </Route>

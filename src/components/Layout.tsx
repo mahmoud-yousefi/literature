@@ -6,7 +6,9 @@ import { Content, Footer } from 'antd/es/layout/layout';
 import { Outlet, useLocation, useParams } from 'react-router-dom';
 import { MoonFilled, SunFilled, MenuOutlined, EditOutlined, LogoutOutlined, UserOutlined, LoginOutlined, UserAddOutlined, UploadOutlined, LockOutlined, LinkOutlined } from '@ant-design/icons';
 import HeaderComponent from './HeaderComponent';
-import { mockPictures } from '../pages/PicturesPage';
+import { Picture } from '../pages/PicturesPage';
+import { Poem } from '../pages/PoemsPage';
+import { LiteraryMemory } from '../pages/MemoriesPage';
 
 const AppLayout: React.FC = () => {
   const [isDarkMode, setIsDarkMode] = useState<boolean | null>(null);
@@ -77,8 +79,12 @@ const AppLayout: React.FC = () => {
 
   const headerTitle = () => {
     if (activeMenuItem) return activeMenuItem.title;
-    const selectedPicture = mockPictures.find((p) => p.id === Number(id));
-    return `جزئیات ${selectedPicture?.title}`
+    
+    let selectedCard: Picture | Poem | LiteraryMemory | undefined;
+    menuItems.map(item => {
+      if (location.pathname.includes(item.path)) selectedCard = item.items.find((p) => p.id === Number(id));
+    })
+    return `جزئیات ${selectedCard?.title || ''}`
   };
   const HeaderIcon = activeMenuItem?.icon || menuItems.find((item) => location.pathname.includes(item.path) && item.path !== '/')?.icon;
 

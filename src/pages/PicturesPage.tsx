@@ -4,7 +4,7 @@ import { PlusOutlined, SearchOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom'; // Import useNavigate
 import EmptyState from '../components/EmptyState';
 
-type Picture = {
+export type Picture = {
   id: number;
   title: string;
   author: string;
