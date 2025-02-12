@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../api';
 
 export type LiteraryMemory = {
-  id: number;
+  id: string | number;
   title: string;
   content: string;
   date?: string;
@@ -94,7 +94,7 @@ const MemoriesPage: React.FC = () => {
     }
   };
 
-  const handleMemoryClick = (id: number) => {
+  const handleMemoryClick = (id: number | string) => {
     navigate(`/memories/${id}`);
   };
 

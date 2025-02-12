@@ -6,7 +6,7 @@ import EmptyState from '../components/EmptyState';
 import axiosInstance from '../api';
 
 export type Picture = {
-  id: number;
+  id: string;
   title: string;
   caption?: string;
   url: string;
@@ -93,7 +93,7 @@ const PicturesPage: React.FC = () => {
     }
   };
 
-  const handlePictureClick = (id: number) => {
+  const handlePictureClick = (id: string) => {
     navigate(`/pictures/${id}`);
   };
 

@@ -61,6 +61,10 @@ input {
   width: 100%;
 }
 
+.ant-modal-confirm-body-wrapper {
+  @apply p-5
+}
+
 .ant-carousel .slick-dots li.slick-active button {
   background-color: gray; 
 }

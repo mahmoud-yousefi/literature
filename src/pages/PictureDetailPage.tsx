@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Spin, Input, Button, List, Divider, Avatar, Collapse, Modal, notification, Upload, Tooltip, Image } from 'antd';
-import { CoffeeOutlined, EditOutlined, LeftOutlined, PlusOutlined, UserOutlined } from '@ant-design/icons';
+import { CoffeeOutlined, DeleteOutlined, EditOutlined, PlusOutlined, RightOutlined, SignatureOutlined, UserOutlined } from '@ant-design/icons';
 import EmptyState from '../components/EmptyState';
 import { Picture } from './PicturesPage';
 import CarouselComponent from '../components/CarouselComponent';
@@ -23,28 +23,30 @@ const PictureDetailPage: React.FC = () => {
     const [isUnverifiedCommentsExpanded, setIsUnverifiedCommentsExpanded] = useState(false);
     const [isRelatedContentExpanded, setRelatedContentExpanded] = useState(false);
     const [isModalVisible, setIsModalVisible] = useState(false);
-    const [newPicture, setNewPicture] = useState<Omit<Picture, 'id'>>({ title: '', url: '', caption: '' });
+    const [newPicture, setNewPicture] = useState<{
+        title: string;
+        caption?: string;
+        file?: File;
+        previewUrl: string;
+    }>({ title: '', caption: '', previewUrl: '' });
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchPicture = async () => {
             try {
-                const response = await axiosInstance({
-                    method: 'GET',
-                    url: `/pictures/${id}`, // Adjust the URL based on your API structure
-                });
-                const selectedPicture = response.data; // Assuming the response contains the picture data
+                const response = await axiosInstance.get(`/pictures/${id}`);
+                const selectedPicture = response.data;
 
-                if (selectedPicture) {
-                    setPicture(selectedPicture);
-                    setNewPicture(selectedPicture);
-                }
+                setPicture(selectedPicture);
+                setNewPicture({
+                    title: selectedPicture.title,
+                    caption: selectedPicture.caption,
+                    previewUrl: selectedPicture.url
+                });
             } catch (error) {
                 console.error('Error fetching picture:', error);
             }
         };
-
-        window.scrollTo(0, 0);
-
         fetchPicture();
     }, [id]);
 
@@ -57,6 +59,7 @@ const PictureDetailPage: React.FC = () => {
             };
             setComments([...comments, newCommentData]);
             setNewComment('');
+            setIsCommentsExpanded(true);
         }
     };
 
@@ -72,24 +75,36 @@ const PictureDetailPage: React.FC = () => {
         setRelatedContentExpanded((prevState) => !prevState);
     };
 
-    const handleUpdate = () => {
-        if (picture?.title && picture?.url && picture?.caption && picture?.id) {
-            if (!newPicture || !newPicture.title || !newPicture.url || !newPicture.caption) {
-                notification.error({ message: 'لطفاً همه موارد را وارد کنید.' });
-                return;
+    const handleUpdate = async () => {
+        if (!newPicture.title || !newPicture.previewUrl) {
+            notification.error({ message: 'لطفاً عنوان و تصویر را وارد کنید.' });
+            return;
+        }
+
+        try {
+            const formData = new FormData();
+            formData.append('title', newPicture.title);
+            formData.append('caption', newPicture.caption || '');
+
+            // Only append file if it exists, otherwise use existing URL
+            if (newPicture.file) {
+                formData.append('file', newPicture.file);
+            } else {
+                formData.append('url', newPicture.previewUrl);
             }
 
-            setPicture((prev) => ({
-                ...(prev as Picture),
-                title: newPicture.title,
-                caption: newPicture.caption ?? 'ناشناس',
-                url: newPicture.url,
-            }));
+            await axiosInstance.put(`/pictures/${id}`, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
 
+            notification.success({ message: 'تصویر با موفقیت به‌روزرسانی شد!' });
             setIsModalVisible(false);
-            notification.success({ message: 'لطفاً همه موارد را وارد کنید.' });
-        } else {
-            notification.error({ message: 'لطفاً همه موارد را وارد کنید.' });
+            setPicture({ title: newPicture.title, caption: newPicture.caption, url: newPicture.previewUrl, id: id ?? '' });
+        } catch (error) {
+            console.error('Error updating picture:', error);
+            notification.error({ message: 'خطا در به‌روزرسانی تصویر. لطفاً دوباره تلاش کنید.' });
         }
     };
 
@@ -110,6 +125,39 @@ const PictureDetailPage: React.FC = () => {
                         />
                     </Tooltip>
 
+                    <Tooltip title="حذف">
+                        <Button
+                            type="text"
+                            className="p-2 m-2 rounded-lg bg-gray-200 hover:bg-gray-300 dark:bg-gray-600 dark:hover:bg-gray-700"
+                            icon={
+                                <DeleteOutlined className="text-gray-700 dark:text-white text-2xl md:text-4xl" />
+                            }
+                            onClick={() =>
+                                Modal.confirm({
+                                    title: 'حذف تصویر',
+                                    content: 'آیا از حذف این تصویر مطمئن هستید؟',
+                                    okText: 'حذف',
+                                    okType: 'danger',
+                                    cancelText: 'لغو',
+                                    onOk: async () => {
+                                        try {
+                                            await axiosInstance({
+                                                method: 'DELETE',
+                                                url: `/pictures/${picture.id}`,
+                                            });
+                                            notification.success({ message: 'تصویر با موفقیت حذف شد!' });
+                                        } catch (error) {
+                                            console.error('Error deleting picture:', error);
+                                            notification.error({ message: 'حذف تصویر با شکست مواجه شد، لطفاً دوباره تلاش کنید.' });
+                                        } finally {
+                                            navigate('/pictures');
+                                        }
+                                    },
+                                })
+                            }
+                        />
+                    </Tooltip>
+
                     {/* Image Section */}
                     <div className="flex justify-center mb-6">
                         <Image
@@ -124,9 +172,10 @@ const PictureDetailPage: React.FC = () => {
                         {picture.title}
                     </h2>
 
-                    <p className="text-lg text-center text-gray-600 dark:text-gray-300 flex items-center justify-center gap-2">
-                        <UserOutlined className="text-blue-500" />
-                        <strong>نویسنده:</strong> {picture.caption}
+                    <p className="text-lg text-gray-600 dark:text-gray-300 whitespace-pre">
+                        <SignatureOutlined className="text-blue-500" />
+                        <br />
+                        {picture.caption}
                     </p>
 
                     <Divider className="border-y-2 mt-6 dark:border-gray-600" />
@@ -150,7 +199,7 @@ const PictureDetailPage: React.FC = () => {
                             activeKey={isCommentsExpanded ? ['comments'] : []}
                             onChange={() => toggleCommentsVisibility()}
                             ghost
-                            expandIcon={({ isActive }) => <LeftOutlined rotate={isActive ? 90 : 0} className='dark:!text-white dark:!font-bold' />}
+                            expandIcon={({ isActive }) => <RightOutlined rotate={isActive ? 90 : 0} className='dark:!text-white dark:!font-bold' />}
                         >
                             <Collapse.Panel
                                 key="comments"
@@ -160,13 +209,11 @@ const PictureDetailPage: React.FC = () => {
                                         className="dark:text-white font-bold"
                                     >
                                         {isCommentsExpanded ? 'پنهان کردن نظرات' : 'نمایش نظرات'}
+                                        <CoffeeOutlined />
                                     </Button>
                                 }
                             >
                                 <div className="mt-8">
-                                    <h3 className="text-xl font-semibold text-gray-800 dark:text-white mb-4 flex items-center gap-2">
-                                        نظرات <CoffeeOutlined />
-                                    </h3>
                                     <List
                                         itemLayout="vertical"
                                         dataSource={comments}
@@ -194,7 +241,7 @@ const PictureDetailPage: React.FC = () => {
                             activeKey={isRelatedContentExpanded ? ['relatedContents'] : []}
                             onChange={() => toggleRelatedContentVisibility()}
                             ghost
-                            expandIcon={({ isActive }) => <LeftOutlined rotate={isActive ? 90 : 0} className='dark:!text-white dark:!font-bold' />}
+                            expandIcon={({ isActive }) => <RightOutlined rotate={isActive ? 90 : 0} className='dark:!text-white dark:!font-bold' />}
                         >
                             <Collapse.Panel
                                 key="relatedContents"
@@ -213,7 +260,7 @@ const PictureDetailPage: React.FC = () => {
                             </Collapse.Panel>
                         </Collapse>
 
-                        <Collapse
+                        {/* <Collapse
                             className="mt-4"
                             expandIconPosition="start"
                             activeKey={isUnverifiedCommentsExpanded ? ['unverifiedComments'] : []}
@@ -250,7 +297,7 @@ const PictureDetailPage: React.FC = () => {
                                     locale={{ emptyText: <EmptyState /> }}
                                 />
                             </Collapse.Panel>
-                        </Collapse>
+                        </Collapse> */}
                     </div>
                 </div>
             )}
@@ -264,46 +311,57 @@ const PictureDetailPage: React.FC = () => {
                 className='p-2'
             >
                 <div className="space-y-4 p-4">
-                    <Upload
-                        listType="picture-card"
-                        showUploadList={false}
-                        beforeUpload={(file) => {
-                            const isImage = file.type.startsWith("image/");
-                            if (!isImage) {
-                                notification.error({ message: "فقط تصاویر مجاز هستند." });
-                                return false;
-                            }
+                    <div className='flex justify-center'>
+                        <Upload
+                            listType="picture-card"
+                            showUploadList={false}
+                            beforeUpload={(file) => {
+                                const isImage = file.type.startsWith("image/");
+                                if (!isImage) {
+                                    notification.error({ message: "فقط تصاویر مجاز هستند." });
+                                    return false;
+                                }
 
-                            const reader = new FileReader();
-                            reader.onload = () => {
-                                setNewPicture((prev) => ({ ...prev, cover: reader.result as string }));
-                            };
-                            reader.readAsDataURL(file);
-                            return false;
-                        }}
-                        className="border-dashed border-2 border-gray-400 rounded-md p-2 flex items-center justify-center"
-                    >
-                        {newPicture.url ? (
-                            <div className="relative">
-                                <img
-                                    src={newPicture.url}
-                                    alt="upload"
-                                    className="h-32 w-32 object-cover rounded-md"
-                                />
-                                <button
-                                    onClick={() => setNewPicture((prev) => ({ ...prev, cover: "" }))}
-                                    className="absolute top-0 right-0 text-white bg-black bg-opacity-50 p-1 rounded-full"
-                                >
-                                    ×
-                                </button>
-                            </div>
-                        ) : (
-                            <div className="text-center">
-                                <PlusOutlined className="text-4xl mb-2" />
-                                <div>افزودن تصویر</div>
-                            </div>
-                        )}
-                    </Upload>
+                                setNewPicture(prev => ({
+                                    ...prev,
+                                    file: file,
+                                    previewUrl: URL.createObjectURL(file)
+                                }));
+                                return false;
+                            }}
+                        >
+                            {newPicture.previewUrl ? (
+                                <div className="relative">
+                                    <img
+                                        src={newPicture.previewUrl}
+                                        alt="preview"
+                                        className="h-32 w-32 object-cover rounded-md"
+                                        onError={(e) => {
+                                            (e.target as HTMLImageElement).style.display = 'none';
+                                        }}
+                                    />
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setNewPicture(prev => ({
+                                                ...prev,
+                                                file: undefined,
+                                                previewUrl: ''
+                                            }));
+                                        }}
+                                        className="absolute top-0 right-0 text-white bg-black bg-opacity-50 p-1 rounded-full"
+                                    >
+                                        ×
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="text-center">
+                                    <PlusOutlined className="text-4xl mb-2" />
+                                    <div>افزودن تصویر</div>
+                                </div>
+                            )}
+                        </Upload>
+                    </div>
 
                     <Input
                         type="text"
@@ -314,7 +372,7 @@ const PictureDetailPage: React.FC = () => {
 
                     <Input.TextArea
                         placeholder="توضیحات"
-                        value={newPicture.title}
+                        value={newPicture.caption}
                         onChange={(e) => setNewPicture((prev) => ({ ...prev, caption: e.target.value }))}
                         rows={4}
                         className="mt-4 rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-500"

@@ -7,7 +7,7 @@ import axiosInstance from '../api';
 
 // Mock data for poems
 export type Poem = {
-  id: number;
+  id: string | number;
   title: string;
   content: string;
   url?: string;
@@ -98,7 +98,7 @@ const PoemsPage: React.FC = () => {
 
   const navigate = useNavigate();
 
-  const handlePictureClick = (id: number) => {
+  const handlePictureClick = (id: string | number) => {
     navigate(`/poems/${id}`);
   };
 

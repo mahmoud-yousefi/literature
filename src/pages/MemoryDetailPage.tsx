@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Spin, Input, Button, List, Divider, Avatar, Collapse, Modal, notification, Upload, Tooltip } from 'antd';
-import { CalendarOutlined, CoffeeOutlined, EditOutlined, LeftOutlined, PlusOutlined, SignatureOutlined, UserOutlined } from '@ant-design/icons';
+import { CalendarOutlined, CoffeeOutlined, EditOutlined, PlusOutlined, RightOutlined, SignatureOutlined, UserOutlined } from '@ant-design/icons';
 import EmptyState from '../components/EmptyState';
 import CarouselComponent from '../components/CarouselComponent';
 import { slides } from '../utils';
@@ -23,8 +23,13 @@ const MemoryDetailPage: React.FC = () => {
     const [isUnverifiedCommentsExpanded, setIsUnverifiedCommentsExpanded] = useState(false);
     const [isRelatedContentExpanded, setRelatedContentExpanded] = useState(false);
     const [isModalVisible, setIsModalVisible] = useState(false);
-    const [newMemory, setNewMemory] = useState<Omit<LiteraryMemory, 'id'>>({ title: '', url: '', date: '', content: '' });
-
+    const [newMemory, setNewMemory] = useState<{
+        title: string;
+        content?: string;
+        file?: File;
+        previewUrl: string;
+        date: string
+    }>({ title: '', content: '', previewUrl: '', date: '' });
     useEffect(() => {
         const fetchPicture = async () => {
             try {
@@ -36,7 +41,12 @@ const MemoryDetailPage: React.FC = () => {
 
                 if (selectedPicture) {
                     setMemory(selectedPicture);
-                    setNewMemory(selectedPicture);
+                    setNewMemory({
+                        title: selectedPicture.title,
+                        content: selectedPicture.content,
+                        previewUrl: selectedPicture.url,
+                        date: selectedPicture.date,
+                    });
                 }
             } catch (error) {
                 console.error('Error fetching picture:', error);
@@ -72,27 +82,41 @@ const MemoryDetailPage: React.FC = () => {
         setRelatedContentExpanded((prevState) => !prevState);
     };
 
-    const handleUpdate = () => {
-        if (memory?.title && memory?.url && memory?.content && memory?.id) {
-            if (!newMemory || !newMemory.title || !newMemory.url || !newMemory.content) {
+    const handleUpdate = async () => {
+        if (memory?.title && memory?.content && memory?.id) {
+            if (!newMemory || !newMemory.title || !newMemory.content) {
                 notification.error({ message: 'لطفاً همه موارد را وارد کنید.' });
                 return;
             }
 
-            setMemory((prev) => ({
-                ...(prev as LiteraryMemory),
-                title: newMemory.title,
-                content: newMemory.content,
-                url: newMemory.url,
-                date: newMemory.date,
-            }));
+            try {
+                const formData = new FormData();
+                formData.append('title', newMemory.title);
+                formData.append('content', newMemory.content || '');
+                if (newMemory.date) formData.append('date', newMemory.date);
 
-            setIsModalVisible(false);
-            notification.success({ message: 'لطفاً همه موارد را وارد کنید.' });
-        } else {
-            notification.error({ message: 'لطفاً همه موارد را وارد کنید.' });
-        }
-    };
+                // Only append file if it exists, otherwise use existing URL
+                if (newMemory.file) {
+                    formData.append('file', newMemory.file);
+                } else {
+                    formData.append('url', newMemory.previewUrl);
+                }
+
+                await axiosInstance.put(`/memories/${id}`, formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                    },
+                });
+
+                notification.success({ message: 'تصویر با موفقیت به‌روزرسانی شد!' });
+                setIsModalVisible(false);
+                setMemory({ title: newMemory.title, content: newMemory.content, url: newMemory.previewUrl, id: id ?? '' });
+            } catch (error) {
+                console.error('Error updating picture:', error);
+                notification.error({ message: 'خطا در به‌روزرسانی تصویر. لطفاً دوباره تلاش کنید.' });
+            }
+        };
+    }
 
     return (
         <div className="flex justify-center items-center min-h-screen bg-gray-100 dark:bg-gray-900 p-4">
@@ -130,9 +154,10 @@ const MemoryDetailPage: React.FC = () => {
                         <strong>تاریخ:</strong> {memory.date}
                     </p>
 
-                    <p className="text-lg text-gray-600 dark:text-gray-300 flex items-center justify-start gap-2">
+                    <p className="text-lg pt-2 text-gray-600 dark:text-gray-300 whitespace-pre">
                         <SignatureOutlined className="text-blue-500" />
-                        <strong>توضیحات:</strong> {memory.content}
+                        <br />
+                        {memory.content}
                     </p>
 
                     <Divider className="border-y-2 mt-6 dark:border-gray-600" />
@@ -156,7 +181,7 @@ const MemoryDetailPage: React.FC = () => {
                             activeKey={isCommentsExpanded ? ['comments'] : []}
                             onChange={() => toggleCommentsVisibility()}
                             ghost
-                            expandIcon={({ isActive }) => <LeftOutlined rotate={isActive ? 90 : 0} className='dark:!text-white dark:!font-bold' />}
+                            expandIcon={({ isActive }) => <RightOutlined rotate={isActive ? 90 : 0} className='dark:!text-white dark:!font-bold' />}
                         >
                             <Collapse.Panel
                                 key="comments"
@@ -166,13 +191,11 @@ const MemoryDetailPage: React.FC = () => {
                                         className="dark:text-white font-bold"
                                     >
                                         {isCommentsExpanded ? 'پنهان کردن نظرات' : 'نمایش نظرات'}
+                                        <CoffeeOutlined />
                                     </Button>
                                 }
                             >
                                 <div className="mt-8">
-                                    <h3 className="text-xl font-semibold text-gray-800 dark:text-white mb-4 flex items-center gap-2">
-                                        نظرات <CoffeeOutlined />
-                                    </h3>
                                     <List
                                         itemLayout="vertical"
                                         dataSource={comments}
@@ -200,7 +223,7 @@ const MemoryDetailPage: React.FC = () => {
                             activeKey={isRelatedContentExpanded ? ['relatedContents'] : []}
                             onChange={() => toggleRelatedContentVisibility()}
                             ghost
-                            expandIcon={({ isActive }) => <LeftOutlined rotate={isActive ? 90 : 0} className='dark:!text-white dark:!font-bold' />}
+                            expandIcon={({ isActive }) => <RightOutlined rotate={isActive ? 90 : 0} className='dark:!text-white dark:!font-bold' />}
                         >
                             <Collapse.Panel
                                 key="relatedContents"
@@ -219,7 +242,7 @@ const MemoryDetailPage: React.FC = () => {
                             </Collapse.Panel>
                         </Collapse>
 
-                        <Collapse
+                        {/* <Collapse
                             className="mt-4"
                             expandIconPosition="start"
                             activeKey={isUnverifiedCommentsExpanded ? ['unverifiedComments'] : []}
@@ -256,7 +279,7 @@ const MemoryDetailPage: React.FC = () => {
                                     locale={{ emptyText: <EmptyState /> }}
                                 />
                             </Collapse.Panel>
-                        </Collapse>
+                        </Collapse> */}
                     </div>
                 </div>
             )}
@@ -270,46 +293,57 @@ const MemoryDetailPage: React.FC = () => {
                 className='p-2'
             >
                 <div className="space-y-4 p-4">
-                    <Upload
-                        listType="picture-card"
-                        showUploadList={false}
-                        beforeUpload={(file) => {
-                            const isImage = file.type.startsWith("image/");
-                            if (!isImage) {
-                                notification.error({ message: "فقط تصاویر مجاز هستند." });
-                                return false;
-                            }
+                    <div className='flex justify-center'>
+                        <Upload
+                            listType="picture-card"
+                            showUploadList={false}
+                            beforeUpload={(file) => {
+                                const isImage = file.type.startsWith("image/");
+                                if (!isImage) {
+                                    notification.error({ message: "فقط تصاویر مجاز هستند." });
+                                    return false;
+                                }
 
-                            const reader = new FileReader();
-                            reader.onload = () => {
-                                setNewMemory((prev) => ({ ...prev, cover: reader.result as string }));
-                            };
-                            reader.readAsDataURL(file);
-                            return false;
-                        }}
-                        className="border-dashed border-2 border-gray-400 rounded-md p-2 flex items-center justify-center"
-                    >
-                        {newMemory.url ? (
-                            <div className="relative">
-                                <img
-                                    src={newMemory.url}
-                                    alt="upload"
-                                    className="h-32 w-32 object-cover rounded-md"
-                                />
-                                <button
-                                    onClick={() => setNewMemory((prev) => ({ ...prev, cover: "" }))}
-                                    className="absolute top-0 right-0 text-white bg-black bg-opacity-50 p-1 rounded-full"
-                                >
-                                    ×
-                                </button>
-                            </div>
-                        ) : (
-                            <div className="text-center">
-                                <PlusOutlined className="text-4xl mb-2" />
-                                <div>افزودن تصویر</div>
-                            </div>
-                        )}
-                    </Upload>
+                                setNewMemory(prev => ({
+                                    ...prev,
+                                    file: file,
+                                    previewUrl: URL.createObjectURL(file)
+                                }));
+                                return false;
+                            }}
+                        >
+                            {newMemory.previewUrl ? (
+                                <div className="relative">
+                                    <img
+                                        src={newMemory.previewUrl}
+                                        alt="preview"
+                                        className="h-32 w-32 object-cover rounded-md"
+                                        onError={(e) => {
+                                            (e.target as HTMLImageElement).style.display = 'none';
+                                        }}
+                                    />
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setNewMemory(prev => ({
+                                                ...prev,
+                                                file: undefined,
+                                                previewUrl: ''
+                                            }));
+                                        }}
+                                        className="absolute top-0 right-0 text-white bg-black bg-opacity-50 p-1 rounded-full"
+                                    >
+                                        ×
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="text-center">
+                                    <PlusOutlined className="text-4xl mb-2" />
+                                    <div>افزودن تصویر</div>
+                                </div>
+                            )}
+                        </Upload>
+                    </div>
 
                     <Input
                         type="text"
