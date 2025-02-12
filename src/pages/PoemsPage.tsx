@@ -41,6 +41,8 @@ const PoemsPage: React.FC = () => {
       }
     };
 
+    window.scrollTo(0, 0);
+
     fetchPoems();
   }, []);
 

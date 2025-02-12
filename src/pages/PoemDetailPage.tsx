@@ -44,6 +44,8 @@ const PoemDetailPage: React.FC = () => {
             }
         };
 
+        window.scrollTo(0, 0);
+
         fetchPicture();
     }, [id]);
 

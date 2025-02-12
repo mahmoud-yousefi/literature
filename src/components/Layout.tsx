@@ -409,7 +409,7 @@ const AppLayout: React.FC = () => {
             className="p-3 rounded-full text-xcolor5 shadow-md transition-transform transform hover:scale-110 fixed left-3 bottom-3 z-40"
             onClick={toggleTheme}
           >
-            {isDarkMode ? <SunFilled /> : <MoonFilled />}
+            {isDarkMode ? <SunFilled className='text-white' /> : <MoonFilled className='text-white' />}
           </Button>
         </Layout>
       </Layout>

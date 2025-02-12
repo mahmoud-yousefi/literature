@@ -42,6 +42,8 @@ const MemoriesPage: React.FC = () => {
       }
     };
 
+    window.scrollTo(0,0);
+
     fetchMemories();
   }, []);
 
