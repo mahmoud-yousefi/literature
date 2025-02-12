@@ -9,6 +9,8 @@ import HeaderComponent from './HeaderComponent';
 import { Picture } from '../pages/PicturesPage';
 import { Poem } from '../pages/PoemsPage';
 import { LiteraryMemory } from '../pages/MemoriesPage';
+import { message } from '../utils/utils';
+import axiosInstance from '../api';
 
 const AppLayout: React.FC = () => {
   const [isDarkMode, setIsDarkMode] = useState<boolean | null>(null);
@@ -75,17 +77,39 @@ const AppLayout: React.FC = () => {
 
   const { id } = useParams();
   const location = useLocation();
+  const [headerTitle, setHeaderTitle] = useState<string>('');
   const activeMenuItem = menuItems.find(item => item.path === location.pathname);
 
-  const headerTitle = () => {
-    if (activeMenuItem) return activeMenuItem.title;
-    
-    let selectedCard: Picture | Poem | LiteraryMemory | undefined;
-    menuItems.map(item => {
-      if (location.pathname.includes(item.path)) selectedCard = item.items.find((p) => p.id === Number(id));
-    })
-    return `جزئیات ${selectedCard?.title || ''}`
-  };
+  useEffect(() => {
+    const fetchHeaderTitle = async () => {
+        if (activeMenuItem) {
+            setHeaderTitle(activeMenuItem.title);
+            return;
+        }
+
+        let selectedCard: Picture | Poem | LiteraryMemory | undefined;
+
+        for (const item of menuItems) {
+            if (location.pathname.includes(item.path)) {
+                try {
+                    const response = await axiosInstance({
+                        method: 'GET',
+                        url: `/${item.path}/${id}`,
+                    });
+                    selectedCard = response.data; // Assuming the response contains the card data
+                    break; // Exit the loop once we find the matching item
+                } catch (error) {
+                    console.error('Error fetching data:', error);
+                }
+            }
+        }
+
+        setHeaderTitle(`جزئیات ${selectedCard?.title || ''}`);
+    };
+
+    fetchHeaderTitle();
+}, [activeMenuItem, menuItems, location.pathname, id]);
+
   const HeaderIcon = activeMenuItem?.icon || menuItems.find((item) => location.pathname.includes(item.path) && item.path !== '/')?.icon;
 
   const handleSignup = () => {
@@ -162,11 +186,15 @@ const AppLayout: React.FC = () => {
               notification.success({ message: 'ثبت‌نام با موفقیت انجام شد' });
             }}
           >
-            <Form.Item name="username" rules={[{ required: true, message: 'لطفاً نام کاربری را وارد کنید' }]}>
-              <Input placeholder="نام کاربری" />
+            <Form.Item name="firstName" rules={[{ required: true, message: message('نام') }]}>
+              <Input placeholder="نام" />
             </Form.Item>
 
-            <Form.Item name="email" rules={[{ required: true, message: 'لطفاً ایمیل را وارد کنید' }, { type: 'email', message: 'ایمیل معتبر وارد کنید' }]}>
+            <Form.Item name="lastName" rules={[{ required: true, message: message("نام خانوادگی") }]}>
+              <Input placeholder="نام خانوادگی" />
+            </Form.Item>
+
+            <Form.Item name="email" rules={[{ required: true, message: message('ایمیل') }, { type: 'email', message: 'ایمیل معتبر وارد کنید' }]}>
               <Input placeholder="ایمیل" />
             </Form.Item>
 
@@ -205,7 +233,7 @@ const AppLayout: React.FC = () => {
 
             <Form.Item>
               <Button type="primary" block size="large" htmlType="submit" style={{ backgroundColor: '#1D4ED8', borderColor: '#1D4ED8' }}>
-                ثبت‌نام
+                {formHeader}
               </Button>
             </Form.Item>
           </Form>
@@ -228,8 +256,8 @@ const AppLayout: React.FC = () => {
               notification.success({ message: 'ورود با موفقیت انجام شد' });
             }}
           >
-            <Form.Item name="username" rules={[{ required: true, message: 'لطفاً نام کاربری را وارد کنید' }]}>
-              <Input placeholder="نام کاربری" />
+            <Form.Item name="email" rules={[{ required: true, message: 'لطفاً ایمیل را وارد کنید' }]}>
+              <Input placeholder="ایمیل" />
             </Form.Item>
 
             <Form.Item name="password" rules={[{ required: true, message: 'لطفاً رمز عبور را وارد کنید' }]}>
@@ -350,7 +378,7 @@ const AppLayout: React.FC = () => {
           style={{
             marginRight: !isMobile ? (collapsed ? "80px" : "200px") : undefined,
           }}>
-          <HeaderComponent HeaderIcon={HeaderIcon} headerTitle={headerTitle()} />
+          <HeaderComponent HeaderIcon={HeaderIcon} headerTitle={headerTitle} />
 
           <Content
             className="px-6 py-20 bg-white dark:bg-gray-950 text-black dark:text-white"

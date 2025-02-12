@@ -3,10 +3,9 @@ import { useParams } from 'react-router-dom';
 import { Spin, Input, Button, List, Divider, Avatar, Collapse, Modal, notification, Upload, Tooltip } from 'antd';
 import { CoffeeOutlined, EditOutlined, LeftOutlined, PlusOutlined, UserOutlined } from '@ant-design/icons';
 import EmptyState from '../components/EmptyState';
-import { Picture } from './PicturesPage';
 import CarouselComponent from '../components/CarouselComponent';
-import { slides } from '../utils';
-import axiosInstance from '../api';
+import { mockMemories, slides } from '../utils';
+import { LiteraryMemory } from './MemoriesPage';
 
 type UserComment = {
     author: string;
@@ -14,36 +13,23 @@ type UserComment = {
     date: string;
 };
 
-const PictureDetailPage: React.FC = () => {
+const MemoryDetailPage: React.FC = () => {
     const { id } = useParams();
-    const [picture, setPicture] = useState<Picture | null>(null);
+    const [memory, setMemory] = useState<LiteraryMemory | null>(null);
     const [comments, setComments] = useState<UserComment[]>([]);
     const [newComment, setNewComment] = useState('');
     const [isCommentsExpanded, setIsCommentsExpanded] = useState(false);
     const [isUnverifiedCommentsExpanded, setIsUnverifiedCommentsExpanded] = useState(false);
     const [isRelatedContentExpanded, setRelatedContentExpanded] = useState(false);
     const [isModalVisible, setIsModalVisible] = useState(false);
-    const [newPicture, setNewPicture] = useState<Omit<Picture, 'id'>>({ title: '', url: '', caption: '' });
+    const [newMemory, setNewPicture] = useState<Omit<LiteraryMemory, 'id'>>({ title: '', cover: '', author: '', description: '' });
 
     useEffect(() => {
-        const fetchPicture = async () => {
-            try {
-                const response = await axiosInstance({
-                    method: 'GET',
-                    url: `/pictures/${id}`, // Adjust the URL based on your API structure
-                });
-                const selectedPicture = response.data; // Assuming the response contains the picture data
-
-                if (selectedPicture) {
-                    setPicture(selectedPicture);
-                    setNewPicture(selectedPicture);
-                }
-            } catch (error) {
-                console.error('Error fetching picture:', error);
-            }
-        };
-
-        fetchPicture();
+        const selectedPicture = mockMemories.find((p) => p.id === Number(id));
+        if (selectedPicture) {
+            setMemory(selectedPicture);
+            setNewPicture(selectedPicture);
+        }
     }, [id]);
 
     const handleCommentSubmit = () => {
@@ -71,17 +57,18 @@ const PictureDetailPage: React.FC = () => {
     };
 
     const handleUpdate = () => {
-        if (picture?.title && picture?.url && picture?.caption && picture?.id) {
-            if (!newPicture || !newPicture.title || !newPicture.url || !newPicture.caption) {
+        if (memory?.title && memory?.cover && memory?.author && memory?.id) {
+            if (!newMemory || !newMemory.title || !newMemory.cover || !newMemory.author) {
                 notification.error({ message: 'لطفاً همه موارد را وارد کنید.' });
                 return;
             }
 
-            setPicture((prev) => ({
-                ...(prev as Picture),
-                title: newPicture.title,
-                caption: newPicture.caption ?? 'ناشناس',
-                url: newPicture.url,
+            setMemory((prev) => ({
+                ...(prev as LiteraryMemory),
+                title: newMemory.title,
+                author: newMemory.author ?? 'ناشناس',
+                cover: newMemory.cover,
+                description: newMemory.description,
             }));
 
             setIsModalVisible(false);
@@ -93,7 +80,7 @@ const PictureDetailPage: React.FC = () => {
 
     return (
         <div className="flex justify-center items-center min-h-screen bg-gray-100 dark:bg-gray-900 p-4">
-            {!picture ? (
+            {!memory ? (
                 <Spin size="large" tip="Loading..." className="text-blue-500" />
             ) : (
                 <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden w-full max-w-4xl p-6 transition-all duration-300 hover:scale-105">
@@ -111,20 +98,25 @@ const PictureDetailPage: React.FC = () => {
                     {/* Image Section */}
                     <div className="flex justify-center mb-6">
                         <img
-                            src={picture.url}
-                            alt={picture.title}
+                            src={memory.cover}
+                            alt={memory.title}
                             className="rounded-lg object-cover w-full max-w-md h-auto shadow-md transition-transform duration-300 ease-in-out hover:scale-105"
                         />
                     </div>
 
                     {/* Title */}
                     <h2 className="text-2xl font-semibold text-center text-gray-800 dark:text-white mb-4 hover:text-blue-500 transition-colors">
-                        {picture.title}
+                        {memory.title}
                     </h2>
 
-                    <p className="text-lg text-center text-gray-600 dark:text-gray-300 flex items-center justify-center gap-2">
+                    <p className="text-lg !text-right text-gray-600 dark:text-gray-300 flex items-center justify-start gap-2">
                         <UserOutlined className="text-blue-500" />
-                        <strong>نویسنده:</strong> {picture.caption}
+                        <strong>نویسنده:</strong> {memory.author}
+                    </p>
+
+                    <p className="text-lg text-gray-600 dark:text-gray-300 flex items-center justify-start gap-2">
+                        <UserOutlined className="text-blue-500" />
+                        <strong>توضیحات:</strong> {memory.description}
                     </p>
 
                     <Divider className="border-y-2 mt-6 dark:border-gray-600" />
@@ -281,10 +273,10 @@ const PictureDetailPage: React.FC = () => {
                         }}
                         className="border-dashed border-2 border-gray-400 rounded-md p-2 flex items-center justify-center"
                     >
-                        {newPicture.url ? (
+                        {newMemory.cover ? (
                             <div className="relative">
                                 <img
-                                    src={newPicture.url}
+                                    src={newMemory.cover}
                                     alt="upload"
                                     className="h-32 w-32 object-cover rounded-md"
                                 />
@@ -305,15 +297,15 @@ const PictureDetailPage: React.FC = () => {
 
                     <Input
                         type="text"
-                        placeholder="عنوان"
-                        value={newPicture.title}
-                        onChange={(e) => setNewPicture((prev) => ({ ...prev, title: e.target.value }))}
+                        placeholder="نویسنده"
+                        value={newMemory.author}
+                        onChange={(e) => setNewPicture((prev) => ({ ...prev, author: e.target.value }))}
                     />
 
                     <Input.TextArea
                         placeholder="توضیحات"
-                        value={newPicture.title}
-                        onChange={(e) => setNewPicture((prev) => ({ ...prev, caption: e.target.value }))}
+                        value={newMemory.description}
+                        onChange={(e) => setNewPicture((prev) => ({ ...prev, description: e.target.value }))}
                         rows={4}
                         className="mt-4 rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-500"
                     />
@@ -339,4 +331,4 @@ const PictureDetailPage: React.FC = () => {
     );
 };
 
-export default PictureDetailPage;
+export default MemoryDetailPage;
