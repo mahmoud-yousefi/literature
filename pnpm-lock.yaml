@@ -14,6 +14,9 @@ dependencies:
   antd:
     specifier: ^5.22.4
     version: 5.22.4(react-dom@18.3.1)(react@18.3.1)
+  antd-jalali:
+    specifier: ^2.0.1
+    version: 2.0.1(antd@5.22.4)(react-dom@18.3.1)(react@18.3.1)
   axios:
     specifier: ^1.7.9
     version: 1.7.9
@@ -1268,6 +1271,25 @@ packages:
     engines: {node: '>=12'}
     dev: true
 
+  /antd-jalali@2.0.1(antd@5.22.4)(react-dom@18.3.1)(react@18.3.1):
+    resolution: {integrity: sha512-M8uo0qHPQhC6UeezVmKq0COIonW4gOL6POrEgoLbz0KtLfyF2zMq7wLuNcF3feEjj75JoVkxy9jxID+/yyCEjQ==}
+    peerDependencies:
+      antd: ^5.18.3
+      react: ^18.3.1
+      react-dom: ^18.3.1
+    dependencies:
+      antd: 5.22.4(react-dom@18.3.1)(react@18.3.1)
+      dayjs: 1.11.13
+      jalaliday: 2.3.0
+      rc-picker: 4.8.3(dayjs@1.11.13)(react-dom@18.3.1)(react@18.3.1)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+    transitivePeerDependencies:
+      - date-fns
+      - luxon
+      - moment
+    dev: false
+
   /antd@5.22.4(react-dom@18.3.1)(react@18.3.1):
     resolution: {integrity: sha512-hkYvDgCKiYb7hF+4FNTDup+ZWnHodTl2eoD1x6m5MXnCg3R9OLfhD9aB7IxjtJ20xO70xOsolMfXgpf/h0cVbw==}
     peerDependencies:
@@ -2061,6 +2083,10 @@ packages:
     optionalDependencies:
       '@pkgjs/parseargs': 0.11.0
     dev: true
+
+  /jalaliday@2.3.0:
+    resolution: {integrity: sha512-B/m3TqsRrTFED/HBDqON6rPKe0MpoLxNICZ5uZeZ/scHJUHKQNr1n+wdZSj8MxrY1Bmo05gllZeNEw4beXd2oQ==}
+    dev: false
 
   /jiti@1.21.6:
     resolution: {integrity: sha512-2yTgeWTWzMWkHu6Jp9NKgePDaYHbntiwvYuuJLbbN9vl7DC9DvXKOB2BC3ZZ92D3cvV/aflH0osDfwpHepQ53w==}

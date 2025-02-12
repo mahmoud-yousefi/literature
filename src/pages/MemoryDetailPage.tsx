@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Spin, Input, Button, List, Divider, Avatar, Collapse, Modal, notification, Upload, Tooltip } from 'antd';
-import { CoffeeOutlined, EditOutlined, LeftOutlined, PlusOutlined, UserOutlined } from '@ant-design/icons';
+import { CalendarOutlined, CoffeeOutlined, EditOutlined, LeftOutlined, PlusOutlined, SignatureOutlined, UserOutlined } from '@ant-design/icons';
 import EmptyState from '../components/EmptyState';
 import CarouselComponent from '../components/CarouselComponent';
-import { mockMemories, slides } from '../utils';
+import { slides } from '../utils';
 import { LiteraryMemory } from './MemoriesPage';
+import axiosInstance from '../api';
 
 type UserComment = {
     author: string;
@@ -22,14 +23,27 @@ const MemoryDetailPage: React.FC = () => {
     const [isUnverifiedCommentsExpanded, setIsUnverifiedCommentsExpanded] = useState(false);
     const [isRelatedContentExpanded, setRelatedContentExpanded] = useState(false);
     const [isModalVisible, setIsModalVisible] = useState(false);
-    const [newMemory, setNewPicture] = useState<Omit<LiteraryMemory, 'id'>>({ title: '', cover: '', author: '', description: '' });
+    const [newMemory, setNewMemory] = useState<Omit<LiteraryMemory, 'id'>>({ title: '', url: '', date: '', content: '' });
 
     useEffect(() => {
-        const selectedPicture = mockMemories.find((p) => p.id === Number(id));
-        if (selectedPicture) {
-            setMemory(selectedPicture);
-            setNewPicture(selectedPicture);
-        }
+        const fetchPicture = async () => {
+            try {
+                const response = await axiosInstance({
+                    method: 'GET',
+                    url: `/memories/${id}`, // Adjust the URL based on your API structure
+                });
+                const selectedPicture = response.data; // Assuming the response contains the picture data
+
+                if (selectedPicture) {
+                    setMemory(selectedPicture);
+                    setNewMemory(selectedPicture);
+                }
+            } catch (error) {
+                console.error('Error fetching picture:', error);
+            }
+        };
+
+        fetchPicture();
     }, [id]);
 
     const handleCommentSubmit = () => {
@@ -57,8 +71,8 @@ const MemoryDetailPage: React.FC = () => {
     };
 
     const handleUpdate = () => {
-        if (memory?.title && memory?.cover && memory?.author && memory?.id) {
-            if (!newMemory || !newMemory.title || !newMemory.cover || !newMemory.author) {
+        if (memory?.title && memory?.url && memory?.content && memory?.id) {
+            if (!newMemory || !newMemory.title || !newMemory.url || !newMemory.content) {
                 notification.error({ message: 'لطفاً همه موارد را وارد کنید.' });
                 return;
             }
@@ -66,9 +80,9 @@ const MemoryDetailPage: React.FC = () => {
             setMemory((prev) => ({
                 ...(prev as LiteraryMemory),
                 title: newMemory.title,
-                author: newMemory.author ?? 'ناشناس',
-                cover: newMemory.cover,
-                description: newMemory.description,
+                content: newMemory.content,
+                url: newMemory.url,
+                date: newMemory.date,
             }));
 
             setIsModalVisible(false);
@@ -98,7 +112,7 @@ const MemoryDetailPage: React.FC = () => {
                     {/* Image Section */}
                     <div className="flex justify-center mb-6">
                         <img
-                            src={memory.cover}
+                            src={memory.url}
                             alt={memory.title}
                             className="rounded-lg object-cover w-full max-w-md h-auto shadow-md transition-transform duration-300 ease-in-out hover:scale-105"
                         />
@@ -110,13 +124,13 @@ const MemoryDetailPage: React.FC = () => {
                     </h2>
 
                     <p className="text-lg !text-right text-gray-600 dark:text-gray-300 flex items-center justify-start gap-2">
-                        <UserOutlined className="text-blue-500" />
-                        <strong>نویسنده:</strong> {memory.author}
+                        <CalendarOutlined className="text-blue-500" />
+                        <strong>تاریخ:</strong> {memory.date}
                     </p>
 
                     <p className="text-lg text-gray-600 dark:text-gray-300 flex items-center justify-start gap-2">
-                        <UserOutlined className="text-blue-500" />
-                        <strong>توضیحات:</strong> {memory.description}
+                        <SignatureOutlined className="text-blue-500" />
+                        <strong>توضیحات:</strong> {memory.content}
                     </p>
 
                     <Divider className="border-y-2 mt-6 dark:border-gray-600" />
@@ -266,22 +280,22 @@ const MemoryDetailPage: React.FC = () => {
 
                             const reader = new FileReader();
                             reader.onload = () => {
-                                setNewPicture((prev) => ({ ...prev, cover: reader.result as string }));
+                                setNewMemory((prev) => ({ ...prev, cover: reader.result as string }));
                             };
                             reader.readAsDataURL(file);
                             return false;
                         }}
                         className="border-dashed border-2 border-gray-400 rounded-md p-2 flex items-center justify-center"
                     >
-                        {newMemory.cover ? (
+                        {newMemory.url ? (
                             <div className="relative">
                                 <img
-                                    src={newMemory.cover}
+                                    src={newMemory.url}
                                     alt="upload"
                                     className="h-32 w-32 object-cover rounded-md"
                                 />
                                 <button
-                                    onClick={() => setNewPicture((prev) => ({ ...prev, cover: "" }))}
+                                    onClick={() => setNewMemory((prev) => ({ ...prev, cover: "" }))}
                                     className="absolute top-0 right-0 text-white bg-black bg-opacity-50 p-1 rounded-full"
                                 >
                                     ×
@@ -297,18 +311,20 @@ const MemoryDetailPage: React.FC = () => {
 
                     <Input
                         type="text"
-                        placeholder="نویسنده"
-                        value={newMemory.author}
-                        onChange={(e) => setNewPicture((prev) => ({ ...prev, author: e.target.value }))}
+                        placeholder="عنوان"
+                        value={newMemory.title}
+                        onChange={(e) => setNewMemory((prev) => ({ ...prev, title: e.target.value }))}
                     />
 
                     <Input.TextArea
                         placeholder="توضیحات"
-                        value={newMemory.description}
-                        onChange={(e) => setNewPicture((prev) => ({ ...prev, description: e.target.value }))}
+                        value={newMemory.content}
+                        onChange={(e) => setNewMemory((prev) => ({ ...prev, content: e.target.value }))}
                         rows={4}
                         className="mt-4 rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-500"
                     />
+
+                    {/* <DatePicker /> */}
 
                     <div className="flex justify-between mt-6">
                         <Button

@@ -1,45 +1,92 @@
-import React, { useState } from 'react';
-import { Input, List, Card, Button, notification, Pagination, Modal } from 'antd';
+import React, { useEffect, useState } from 'react';
+import { Input, List, Card, Button, notification, Pagination, Modal, Upload } from 'antd';
 import EmptyState from '../components/EmptyState';
 import { PlusOutlined, SearchOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
-import { mockMemories } from '../utils';
+import axiosInstance from '../api';
 
 export type LiteraryMemory = {
   id: number;
   title: string;
-  author: string;
-  description: string;
-  cover: string;
+  content: string;
+  date?: string;
+  url: string;
 };
 
 const MemoriesPage: React.FC = () => {
   const [query, setQuery] = useState('');
-  const [memories, setMemories] = useState<(LiteraryMemory & { isAddCard?: boolean })[]>(mockMemories);
+  const [memories, setMemories] = useState<(LiteraryMemory & { isAddCard?: boolean })[]>([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [newMemory, setNewMemory] = useState<{ title: string; cover: string, description: string }>({ title: '', cover: '', description: '' });
-  const [currentPage, setCurrentPage] = useState(1);
+  const [newMemory, setNewMemory] = useState<{
+    title: string;
+    content: string;
+    date?: string;
+    file?: File;
+    previewUrl: string;
+  }>({ title: '', content: '', previewUrl: '', date: '' }); const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const pageSize = 8;
+
+  useEffect(() => {
+    const fetchMemories = async () => {
+      try {
+        const response = await axiosInstance({
+          method: 'GET',
+          url: '/memories',
+        }); // Replace with your API endpoint
+        setMemories(response.data); // Assuming the response data is an array of pictures
+      } catch (err: any) {
+        console.log(err?.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMemories();
+  }, []);
 
   const navigate = useNavigate();
 
   const handleSearch = () => {
     setLoading(true);
-    const filteredPictures = mockMemories.filter((memory) =>
-      memory.title.includes(query) || memory.author.includes(query)
+    const filteredPictures = memories.filter((memory) =>
+      memory.title.includes(query) || memory.content.includes(query)
     );
     setMemories(filteredPictures);
     setCurrentPage(1);
     setLoading(false);
   };
 
-  const handleAddMemory = () => {
-    if (newMemory.title && newMemory.cover) {
-      const newId = memories.length ? memories[memories.length - 1].id + 1 : 1;
-      setMemories([...memories, { id: newId, title: newMemory.title, author: 'ناشناس', cover: newMemory.cover, description: newMemory.description }]);
-      setNewMemory({ title: '', cover: '', description: '' });
-      setIsModalVisible(false);
+  const handleAddMemory = async () => {
+    if (newMemory.title && newMemory.file && newMemory.content) {
+      try {
+        const formData = new FormData();
+        formData.append('title', newMemory.title);
+        formData.append('content', newMemory.content || '');
+        formData.append('file', newMemory.file);
+
+        const response = await axiosInstance.post('/memories', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+
+        const addedPicture = response.data;
+        setMemories([...memories, addedPicture]);
+        setNewMemory({ title: '', content: '', previewUrl: '', file: undefined });
+        setIsModalVisible(false);
+      } catch (error) {
+        console.error('Error adding picture:', error);
+        notification.error({ message: 'خطا در افزودن تصویر. لطفاً دوباره تلاش کنید.' });
+
+        try {
+          const response = await axiosInstance.get('/pictures');
+          setMemories(response.data);
+        } catch (fetchError) {
+          console.error('Error fetching pictures:', fetchError);
+          notification.error({ message: 'خطا در بارگذاری تصاویر. لطفاً دوباره تلاش کنید.' });
+        }
+      }
     } else {
       notification.error({ message: 'لطفاً همه موارد را وارد کنید.' });
     }
@@ -75,7 +122,7 @@ const MemoriesPage: React.FC = () => {
             icon={<SearchOutlined />}
           >
           </Button>
-        </div>        
+        </div>
         <List
           grid={{
             gutter: 16,
@@ -86,7 +133,7 @@ const MemoriesPage: React.FC = () => {
             xl: 3,
           }}
           loading={loading}
-          dataSource={[...paginatedMemories, { id: 0, title: '', author: '', cover: '', description: '', isAddCard: true }]}
+          dataSource={[...paginatedMemories, { id: 0, title: '', content: '', url: '', date: '', isAddCard: true }]}
           renderItem={(memory) =>
             memory.isAddCard ? (
               <List.Item>
@@ -108,23 +155,24 @@ const MemoriesPage: React.FC = () => {
                   cover={
                     <img
                       alt={memory.title}
-                      src={memory.cover}
+                      src={memory.url}
                       className="h-48 object-cover"
                     />
                   }
+                  className="dark:bg-gray-800"
                   onClick={() => handleMemoryClick(memory.id)}
                 >
                   <Card.Meta
-                    title={memory.title}
+                    className="dark:text-white"
+                    title={<span className="dark:text-white">{memory.title}</span>}
                     description={
                       <>
-                        <p className="text-sm font-medium">{memory.author}</p>
-                        <p className="text-xs text-gray-600 line-clamp-2">
-                          {memory.description}
+                        <p className="text-sm font-medium">{memory.date}</p>
+                        <p className="dark:text-white line-clamp-2">
+                          {memory.content}
                         </p>
                       </>
-                    }
-                  />
+                    } />
                 </Card>
               </List.Item>
             )}
@@ -150,16 +198,71 @@ const MemoriesPage: React.FC = () => {
         className='p-2'
       >
         <div className="space-y-4 p-4">
+          <Upload
+            listType="picture-card"
+            showUploadList={false}
+            beforeUpload={(file) => {
+              const isImage = file.type.startsWith("image/");
+              if (!isImage) {
+                notification.error({ message: "فقط تصاویر مجاز هستند." });
+                return false;
+              }
+
+              const reader = new FileReader();
+              reader.onload = () => {
+                setNewMemory((prev) => ({
+                  ...prev,
+                  previewUrl: reader.result as string,
+                  file
+                }));
+              };
+              reader.readAsDataURL(file);
+              return false;
+            }}
+            className="border-dashed border-2 border-gray-400 rounded-md p-2 flex items-center justify-center"
+          >
+            {newMemory.previewUrl ? (
+              <div className="relative">
+                <img
+                  src={newMemory.previewUrl}
+                  alt="آپلود"
+                  className="h-32 w-32 object-cover rounded-md"
+                />
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setNewMemory((prev) => ({
+                      ...prev,
+                      previewUrl: '',
+                      file: undefined
+                    }));
+                  }}
+                  className="absolute top-0 right-0 text-white bg-black bg-opacity-50 p-1 rounded-full"
+                >
+                  ×
+                </button>
+              </div>
+            ) : (
+              <div className="text-center">
+                <PlusOutlined className="text-4xl mb-2" />
+                <div>افزودن تصویر</div>
+              </div>
+            )}
+          </Upload>
+
+          {/* <DatePicker /> */}
+
           <Input
             placeholder="عنوان"
             value={newMemory.title}
             onChange={(e) => setNewMemory((prev) => ({ ...prev, title: e.target.value }))}
             className="mt-4 rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-500"
           />
+
           <Input.TextArea
             placeholder="توضیحات"
-            value={newMemory.description}
-            onChange={(e) => setNewMemory((prev) => ({ ...prev, title: e.target.value }))}
+            value={newMemory.content}
+            onChange={(e) => setNewMemory((prev) => ({ ...prev, content: e.target.value }))}
             rows={4}
             className="mt-4 rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-500"
           />

@@ -56,8 +56,6 @@ const PicturesPage: React.FC = () => {
     previewUrl: string;
   }>({ title: '', caption: '', previewUrl: '' });
 
-  // ... other code
-
   const handleAddPicture = async () => {
     if (newPicture.title && newPicture.file) {
       try {
