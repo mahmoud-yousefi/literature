@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Input, List, Card, Button, notification, Pagination, Modal, Upload } from 'antd';
+import { Input, List, Card, Button, notification, Pagination, Modal, Upload, Image } from 'antd';
 import EmptyState from '../components/EmptyState';
 import { PlusOutlined, SearchOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
@@ -60,12 +60,12 @@ const MemoriesPage: React.FC = () => {
   };
 
   const handleAddMemory = async () => {
-    if (newMemory.title && newMemory.file && newMemory.content) {
+    if (newMemory.title && newMemory.content) {
       try {
         const formData = new FormData();
         formData.append('title', newMemory.title);
         formData.append('content', newMemory.content || '');
-        formData.append('file', newMemory.file);
+        if(newMemory.file) formData.append('file', newMemory.file);
 
         const response = await axiosInstance.post('/memories', formData, {
           headers: {
@@ -155,11 +155,13 @@ const MemoriesPage: React.FC = () => {
                 <Card
                   hoverable
                   cover={
-                    <img
+                    memory.url ? (
+                      <Image
                       alt={memory.title}
                       src={memory.url}
                       className="h-48 object-cover"
                     />
+                    ) : null
                   }
                   className="dark:bg-gray-800"
                   onClick={() => handleMemoryClick(memory.id)}

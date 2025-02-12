@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Spin, Input, Button, List, Divider, Avatar, Collapse, Modal, notification, Tooltip, Image, Upload } from 'antd';
-import { CoffeeOutlined, CopyOutlined, EditOutlined, HighlightOutlined, LoadingOutlined, PlusOutlined, RightOutlined, UserOutlined } from '@ant-design/icons';
+import { CoffeeOutlined, CopyOutlined, DeleteOutlined, EditOutlined, HighlightOutlined, LoadingOutlined, PlusOutlined, RightOutlined, UserOutlined } from '@ant-design/icons';
 import EmptyState from '../components/EmptyState';
 import CarouselComponent from '../components/CarouselComponent';
 import { slides } from '../utils';
@@ -120,6 +120,8 @@ const PoemDetailPage: React.FC = () => {
         }
     };
 
+    const navigate = useNavigate();
+
     const handleCopy = async () => {
         try {
             if (poem?.content) {
@@ -149,6 +151,38 @@ const PoemDetailPage: React.FC = () => {
                                 <EditOutlined className="text-gray-700 dark:text-white text-2xl md:text-4xl" />
                             }
                             onClick={() => setIsModalVisible(true)}
+                        />
+                    </Tooltip>
+                    <Tooltip title="حذف">
+                        <Button
+                            type="text"
+                            className="p-2 m-2 rounded-lg bg-gray-200 hover:bg-gray-300 dark:bg-gray-600 dark:hover:bg-gray-700"
+                            icon={
+                                <DeleteOutlined className="text-gray-700 dark:text-white text-2xl md:text-4xl" />
+                            }
+                            onClick={() =>
+                                Modal.confirm({
+                                    title: 'حذف شعر',
+                                    content: 'آیا از حذف این شعر مطمئن هستید؟',
+                                    okText: 'حذف',
+                                    okType: 'danger',
+                                    cancelText: 'لغو',
+                                    onOk: async () => {
+                                        try {
+                                            await axiosInstance({
+                                                method: 'DELETE',
+                                                url: `/poems/${poem.id}`,
+                                            });
+                                            notification.success({ message: 'شعر با موفقیت حذف شد!' });
+                                        } catch (error) {
+                                            console.error('Error deleting picture:', error);
+                                            notification.error({ message: 'حذف شعر با شکست مواجه شد، لطفاً دوباره تلاش کنید.' });
+                                        } finally {
+                                            navigate('/poems');
+                                        }
+                                    },
+                                })
+                            }
                         />
                     </Tooltip>
 

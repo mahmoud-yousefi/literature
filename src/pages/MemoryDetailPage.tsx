@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Spin, Input, Button, List, Divider, Avatar, Collapse, Modal, notification, Upload, Tooltip } from 'antd';
-import { CalendarOutlined, CoffeeOutlined, EditOutlined, PlusOutlined, RightOutlined, SignatureOutlined, UserOutlined } from '@ant-design/icons';
+import { CalendarOutlined, CoffeeOutlined, DeleteOutlined, EditOutlined, PlusOutlined, RightOutlined, SignatureOutlined, UserOutlined } from '@ant-design/icons';
 import EmptyState from '../components/EmptyState';
 import CarouselComponent from '../components/CarouselComponent';
 import { slides } from '../utils';
@@ -57,6 +57,8 @@ const MemoryDetailPage: React.FC = () => {
 
         fetchPicture();
     }, [id]);
+
+    const navigate = useNavigate();
 
     const handleCommentSubmit = () => {
         if (newComment.trim()) {
@@ -134,14 +136,48 @@ const MemoryDetailPage: React.FC = () => {
                             onClick={() => setIsModalVisible(true)}
                         />
                     </Tooltip>
+                    <Tooltip title="حذف">
+                        <Button
+                            type="text"
+                            className="p-2 m-2 rounded-lg bg-gray-200 hover:bg-gray-300 dark:bg-gray-600 dark:hover:bg-gray-700"
+                            icon={
+                                <DeleteOutlined className="text-gray-700 dark:text-white text-2xl md:text-4xl" />
+                            }
+                            onClick={() =>
+                                Modal.confirm({
+                                    title: 'حذف خاطره',
+                                    content: 'آیا از حذف این خاطره مطمئن هستید؟',
+                                    okText: 'حذف',
+                                    okType: 'danger',
+                                    cancelText: 'لغو',
+                                    onOk: async () => {
+                                        try {
+                                            await axiosInstance({
+                                                method: 'DELETE',
+                                                url: `/memories/${memory.id}`,
+                                            });
+                                            notification.success({ message: 'خاطره با موفقیت حذف شد!' });
+                                        } catch (error) {
+                                            console.error('Error deleting picture:', error);
+                                            notification.error({ message: 'حذف خاطره با شکست مواجه شد، لطفاً دوباره تلاش کنید.' });
+                                        } finally {
+                                            navigate('/memories');
+                                        }
+                                    },
+                                })
+                            }
+                        />
+                    </Tooltip>
 
                     {/* Image Section */}
                     <div className="flex justify-center mb-6">
-                        <img
-                            src={memory.url}
-                            alt={memory.title}
-                            className="rounded-lg object-cover w-full max-w-md h-auto shadow-md transition-transform duration-300 ease-in-out hover:scale-105"
-                        />
+                        {memory.url ? (
+                            <img
+                                src={memory.url}
+                                alt={memory.title}
+                                className="rounded-lg object-cover w-full max-w-md h-auto shadow-md transition-transform duration-300 ease-in-out hover:scale-105"
+                            />
+                        ) : null}
                     </div>
 
                     {/* Title */}
