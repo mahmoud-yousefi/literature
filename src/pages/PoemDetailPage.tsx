@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Spin, Input, Button, List, Divider, Avatar, Collapse, Modal, notification, Tooltip } from 'antd';
+import { Spin, Input, Button, List, Divider, Avatar, Collapse, Modal, notification, Tooltip, Image } from 'antd';
 import { CoffeeOutlined, CopyOutlined, EditOutlined, HighlightOutlined, LeftOutlined, LoadingOutlined, UserOutlined } from '@ant-design/icons';
 import EmptyState from '../components/EmptyState';
 import CarouselComponent from '../components/CarouselComponent';
-import { mockPoems, slides } from '../utils';
+import { slides } from '../utils';
 import { Poem } from './PoemsPage';
+import axiosInstance from '../api';
 
 type UserComment = {
     author: string;
@@ -22,15 +23,28 @@ const PoemDetailPage: React.FC = () => {
     const [isUnverifiedCommentsExpanded, setIsUnverifiedCommentsExpanded] = useState(false);
     const [isRelatedContentExpanded, setRelatedContentExpanded] = useState(false);
     const [isModalVisible, setIsModalVisible] = useState(false);
-    const [newPoem, setNewPoem] = useState<Omit<Poem, 'id'>>({ title: '', content: '', poet: '' });
+    const [newPoem, setNewPoem] = useState<Omit<Poem, 'id'>>({ title: '', content: '', url: '' });
     const [isCopied, setIsCopied] = useState(false);
 
     useEffect(() => {
-        const selectedPicture = mockPoems.find((p) => p.id === Number(id));
-        if (selectedPicture) {
-            setPoem(selectedPicture);
-            setNewPoem(selectedPicture);
-        }
+        const fetchPicture = async () => {
+            try {
+                const response = await axiosInstance({
+                    method: 'GET',
+                    url: `/poems/${id}`, // Adjust the URL based on your API structure
+                });
+                const selectedPicture = response.data; // Assuming the response contains the picture data
+
+                if (selectedPicture) {
+                    setPoem(selectedPicture);
+                    setNewPoem(selectedPicture);
+                }
+            } catch (error) {
+                console.error('Error fetching picture:', error);
+            }
+        };
+
+        fetchPicture();
     }, [id]);
 
     const handleCommentSubmit = () => {
@@ -58,8 +72,8 @@ const PoemDetailPage: React.FC = () => {
     };
 
     const handleUpdate = () => {
-        if (poem?.title && poem?.content && poem?.poet && poem?.id) {
-            if (!newPoem || !newPoem.title || !newPoem.content || !newPoem.poet) {
+        if (poem?.title && poem?.content && poem?.url && poem?.id) {
+            if (!newPoem || !newPoem.title || !newPoem.content || !newPoem.url) {
                 notification.error({ message: 'لطفاً همه موارد را وارد کنید.' });
                 return;
             }
@@ -68,7 +82,7 @@ const PoemDetailPage: React.FC = () => {
                 ...(prev as Poem),
                 title: newPoem.title,
                 content: newPoem.content,
-                poet: newPoem.poet,
+                poet: newPoem.url,
             }));
 
             setIsModalVisible(false);
@@ -110,25 +124,25 @@ const PoemDetailPage: React.FC = () => {
                         />
                     </Tooltip>
 
-                    <h2 className="text-2xl font-semibold text-center text-gray-800 dark:text-white !mb-6 hover:text-blue-500 transition-colors">
+                    <h2 className="flex justify-center gap-2 text-2xl font-semibold text-gray-800 dark:text-white !mb-6 hover:text-blue-500 transition-colors">
+                        <HighlightOutlined className="text-blue-500" />
                         {poem.title}
                     </h2>
 
-                    <p className="text-lg !my-6 text-gray-600 dark:text-gray-300 flex items-center justify-start gap-2">
-                        <UserOutlined className="text-blue-500" />
-                        <strong>شاعر:</strong> {poem.poet}
-                    </p>
-
                     <p className="text-lg text-gray-600 dark:text-gray-300 flex flex-col gap-2">
-                        <div className='flex gap-2'>
-                            <HighlightOutlined className="text-blue-500" />
-                            <strong>محتوا:</strong>
-                        </div>
                         <div className='bg-gray-100 dark:bg-gray-700 text-center rounded-md pt-2 pb-6 px-6'>
                             <div className='flex justify-end w-full'><Button onClick={handleCopy} icon={isCopied ? <LoadingOutlined className='text-gray-900 dark:text-gray-100' /> : <CopyOutlined className='text-gray-900 dark:text-gray-100' />} className='text-gray-900 dark:!text-gray-100' type='text'>{isCopied ? 'کپی شد!' : undefined}</Button></div>
                             <div>{poem.content}</div>
                         </div>
                     </p>
+
+                    <div className="flex justify-center my-6">
+                        <Image
+                            src={poem.url}
+                            alt={poem.title}
+                            className="object-cover w-full max-w-md h-auto shadow-md transition-transform duration-300 ease-in-out hover:scale-105"
+                        />
+                    </div>
 
                     <Divider className="border-y-2 mt-6 dark:border-gray-600" />
 
@@ -275,7 +289,7 @@ const PoemDetailPage: React.FC = () => {
                     <Input
                         type="text"
                         placeholder="شاعر"
-                        value={newPoem.poet}
+                        value={newPoem.url}
                         onChange={(e) => setNewPoem((prev) => ({ ...prev, poet: e.target.value }))}
                     />
 

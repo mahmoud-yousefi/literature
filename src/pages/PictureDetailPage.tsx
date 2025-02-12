@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Spin, Input, Button, List, Divider, Avatar, Collapse, Modal, notification, Upload, Tooltip } from 'antd';
+import { Spin, Input, Button, List, Divider, Avatar, Collapse, Modal, notification, Upload, Tooltip, Image } from 'antd';
 import { CoffeeOutlined, EditOutlined, LeftOutlined, PlusOutlined, UserOutlined } from '@ant-design/icons';
 import EmptyState from '../components/EmptyState';
 import { Picture } from './PicturesPage';
@@ -110,7 +110,7 @@ const PictureDetailPage: React.FC = () => {
 
                     {/* Image Section */}
                     <div className="flex justify-center mb-6">
-                        <img
+                        <Image
                             src={picture.url}
                             alt={picture.title}
                             className="rounded-lg object-cover w-full max-w-md h-auto shadow-md transition-transform duration-300 ease-in-out hover:scale-105"

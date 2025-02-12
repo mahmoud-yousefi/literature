@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Input, Button, List, Card, Modal, Upload, Pagination, notification, Image } from 'antd';
 import { PlusOutlined, SearchOutlined } from '@ant-design/icons';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate
+import { useNavigate } from 'react-router-dom';
 import EmptyState from '../components/EmptyState';
 import axiosInstance from '../api';
 
@@ -12,18 +12,10 @@ export type Picture = {
   url: string;
 };
 
-// export const mockPictures: Picture[] = Array.from({ length: 30 }, (_, index) => ({
-//   id: index + 1,
-//   title: `عنوان عکس ${index + 1}`,
-//   author: `نویسنده ${index + 1}`,
-//   cover: `https://valizadehh.ir/wp-content/uploads/2022/03/photo_%DB%B2%DB%B0%DB%B2%DB%B2-%DB%B0%DB%B3-%DB%B1%DB%B4_%DB%B2%DB%B2-%DB%B5%DB%B9-%DB%B5%DB%B2-2.jpg`,
-// }));
-
 const PicturesPage: React.FC = () => {
   const [query, setQuery] = useState('');
   const [pictures, setPictures] = useState<(Picture & { isAddCard?: boolean })[]>([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [newPicture, setNewPicture] = useState<Omit<Picture, 'id'>>({ title: '', caption: '', url: '' });
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const pageSize = 8;
@@ -49,40 +41,48 @@ const PicturesPage: React.FC = () => {
   const navigate = useNavigate();
 
   const handleSearch = () => {
-    setLoading(true); 
+    setLoading(true);
     const filteredPictures = pictures.filter((picture) =>
       picture.title.includes(query)
     );
     setPictures(filteredPictures);
     setCurrentPage(1);
-    setLoading(false); 
+    setLoading(false);
   };
+  const [newPicture, setNewPicture] = useState<{
+    title: string;
+    caption?: string;
+    file?: File;
+    previewUrl: string;
+  }>({ title: '', caption: '', previewUrl: '' });
+
+  // ... other code
 
   const handleAddPicture = async () => {
-    if (newPicture.title && newPicture.url) {
+    if (newPicture.title && newPicture.file) {
       try {
-        // Send a POST request to add the new picture
-        const response = await axiosInstance.post('/pictures', {
-          title: newPicture.title,
-          url: newPicture.url,
-          caption: newPicture.caption, // Include caption if needed
+        const formData = new FormData();
+        formData.append('title', newPicture.title);
+        formData.append('caption', newPicture.caption || '');
+        formData.append('file', newPicture.file);
+
+        const response = await axiosInstance.post('/pictures', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
         });
-  
-        // Assuming the response contains the newly created picture
+
         const addedPicture = response.data;
-  
-        // Update the state with the new picture
         setPictures([...pictures, addedPicture]);
-        setNewPicture({ title: '', url: '', caption: '' });
+        setNewPicture({ title: '', caption: '', previewUrl: '', file: undefined });
         setIsModalVisible(false);
       } catch (error) {
-        // If there's an error, fetch the pictures again to restore the previous state
         console.error('Error adding picture:', error);
         notification.error({ message: 'خطا در افزودن تصویر. لطفاً دوباره تلاش کنید.' });
-  
+
         try {
           const response = await axiosInstance.get('/pictures');
-          setPictures(response.data); // Restore the pictures from the server
+          setPictures(response.data);
         } catch (fetchError) {
           console.error('Error fetching pictures:', fetchError);
           notification.error({ message: 'خطا در بارگذاری تصاویر. لطفاً دوباره تلاش کنید.' });
@@ -201,22 +201,33 @@ const PicturesPage: React.FC = () => {
 
               const reader = new FileReader();
               reader.onload = () => {
-                setNewPicture((prev) => ({ ...prev, url: reader.result as string }));
+                setNewPicture((prev) => ({
+                  ...prev,
+                  previewUrl: reader.result as string,
+                  file
+                }));
               };
               reader.readAsDataURL(file);
               return false;
             }}
             className="border-dashed border-2 border-gray-400 rounded-md p-2 flex items-center justify-center"
           >
-            {newPicture.url ? (
+            {newPicture.previewUrl ? (
               <div className="relative">
                 <img
-                  src={newPicture.url}
+                  src={newPicture.previewUrl}
                   alt="آپلود"
                   className="h-32 w-32 object-cover rounded-md"
                 />
                 <button
-                  onClick={() => setNewPicture((prev) => ({ ...prev, url: "" }))}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setNewPicture((prev) => ({
+                      ...prev,
+                      previewUrl: '',
+                      file: undefined
+                    }));
+                  }}
                   className="absolute top-0 right-0 text-white bg-black bg-opacity-50 p-1 rounded-full"
                 >
                   ×

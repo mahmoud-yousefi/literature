@@ -90,11 +90,11 @@ const AppLayout: React.FC = () => {
         let selectedCard: Picture | Poem | LiteraryMemory | undefined;
 
         for (const item of menuItems) {
-            if (location.pathname.includes(item.path)) {
+            if (location.pathname.includes(item.path) && item.path !== '/') {
                 try {
                     const response = await axiosInstance({
                         method: 'GET',
-                        url: `/${item.path}/${id}`,
+                        url: `${item.path}/${id}`,
                     });
                     selectedCard = response.data; // Assuming the response contains the card data
                     break; // Exit the loop once we find the matching item
