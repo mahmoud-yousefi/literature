@@ -185,10 +185,14 @@ const MemoryDetailPage: React.FC = () => {
                         {memory.title}
                     </h2>
 
-                    <p className="text-lg !text-right text-gray-600 dark:text-gray-300 flex items-center justify-start gap-2">
-                        <CalendarOutlined className="text-blue-500" />
-                        <strong>تاریخ:</strong> {memory.date}
-                    </p>
+                    {
+                        memory.date ? (
+                            <p className="text-lg !text-right text-gray-600 dark:text-gray-300 flex items-center justify-start gap-2">
+                                <CalendarOutlined className="text-blue-500" />
+                                <strong>تاریخ:</strong> {memory.date}
+                            </p>
+                        ) : null
+                    }
 
                     <p className="text-lg pt-2 text-gray-600 dark:text-gray-300 whitespace-pre">
                         <SignatureOutlined className="text-blue-500" />
@@ -321,7 +325,7 @@ const MemoryDetailPage: React.FC = () => {
             )}
 
             <Modal
-                title={<div className='w-full text-center p-4'>ویرایش عکس</div>}
+                title={<div className='w-full text-center p-4'>ویرایش خاطره</div>}
                 open={isModalVisible}
                 onCancel={() => setIsModalVisible(false)}
                 onOk={handleUpdate}

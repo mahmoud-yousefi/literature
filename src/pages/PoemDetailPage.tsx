@@ -84,7 +84,7 @@ const PoemDetailPage: React.FC = () => {
     };
 
     const handleUpdate = async () => {
-        if (poem?.title && poem?.content && poem?.url && poem?.id) {
+        if (poem?.title && poem?.content && poem?.id) {
             if (!newPoem || !newPoem.title || !newPoem.content || !newPoem.previewUrl) {
                 notification.error({ message: 'لطفاً همه موارد را وارد کنید.' });
                 return;
@@ -199,11 +199,13 @@ const PoemDetailPage: React.FC = () => {
                     </p>
 
                     <div className="flex justify-center my-6">
-                        <Image
-                            src={poem.url}
-                            alt={poem.title}
-                            className="object-cover w-full max-w-md h-auto shadow-md transition-transform duration-300 ease-in-out hover:scale-105"
-                        />
+                        {poem.url ? (
+                            <Image
+                                src={poem.url}
+                                alt={poem.title}
+                                className="object-cover w-full max-w-md h-auto shadow-md transition-transform duration-300 ease-in-out hover:scale-105"
+                            />
+                        ) : null}
                     </div>
 
                     <Divider className="border-y-2 mt-6 dark:border-gray-600" />

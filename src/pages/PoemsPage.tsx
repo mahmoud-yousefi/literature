@@ -58,12 +58,12 @@ const PoemsPage: React.FC = () => {
   };
 
   const handleAddPoem = async () => {
-    if (newPoem.title && newPoem.file && newPoem.content) {
+    if (newPoem.title && newPoem.content) {
       try {
         const formData = new FormData();
         formData.append('title', newPoem.title);
         formData.append('content', newPoem.content || '');
-        formData.append('file', newPoem.file);
+        if(newPoem.file) formData.append('file', newPoem.file);
 
         const response = await axiosInstance.post('/poems', formData, {
           headers: {
