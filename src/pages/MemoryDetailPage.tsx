@@ -104,12 +104,12 @@ const MemoryDetailPage: React.FC = () => {
                     formData.append('url', newMemory.previewUrl);
                 }
 
+                
                 await axiosInstance.put(`/memories/${id}`, formData, {
                     headers: {
                         'Content-Type': 'multipart/form-data',
                     },
                 });
-
                 notification.success({ message: 'تصویر با موفقیت به‌روزرسانی شد!' });
                 setIsModalVisible(false);
                 setMemory({ title: newMemory.title, content: newMemory.content, url: newMemory.previewUrl, id: id ?? '' });

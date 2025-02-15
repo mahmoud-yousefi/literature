@@ -1,16 +1,18 @@
-import { Button, ConfigProvider, Layout, Drawer, Menu, Dropdown, Avatar, Tooltip, Modal, Form, Input, notification, Upload } from 'antd';
-import Sider from 'antd/es/layout/Sider';
+import { Button, ConfigProvider, Layout, Menu, Dropdown, Avatar, Tooltip, notification } from 'antd';
 import React, { useState, useEffect } from 'react';
-import SidebarMenu, { menuItems } from './SidebarMenu';
+import { menuItems } from './SidebarMenu';
 import { Content, Footer } from 'antd/es/layout/layout';
 import { Outlet, useLocation, useParams } from 'react-router-dom';
-import { MoonFilled, SunFilled, MenuOutlined, EditOutlined, LogoutOutlined, UserOutlined, LoginOutlined, UserAddOutlined, UploadOutlined, LockOutlined, LinkOutlined } from '@ant-design/icons';
+import { MoonFilled, SunFilled, MenuOutlined, EditOutlined, LogoutOutlined, UserOutlined, LoginOutlined, UserAddOutlined, LockOutlined, LinkOutlined } from '@ant-design/icons';
 import HeaderComponent from './HeaderComponent';
 import { Picture } from '../pages/PicturesPage';
 import { Poem } from '../pages/PoemsPage';
 import { LiteraryMemory } from '../pages/MemoriesPage';
-import { message } from '../utils/utils';
 import axiosInstance from '../api';
+import { User } from '../types';
+import { LoginModal } from './modals/LoginModal';
+import Sidebar from './Sidebar';
+import UserForm from './modals/UserForm';
 
 const AppLayout: React.FC = () => {
   const [isDarkMode, setIsDarkMode] = useState<boolean | null>(null);
@@ -19,7 +21,8 @@ const AppLayout: React.FC = () => {
   // const [userAvatar, setUserAvatar] = useState(null);
 
   // Modal states
-  const [isSignupModalVisible, setIsSignupModalVisible] = useState(false);
+  const [showSignup, setShowSignup] = useState(false);
+  const [showEdit, setShowEdit] = useState(false);
   const [isLoginModalVisible, setIsLoginModalVisible] = useState(false);
 
   const handleMenuClick = ({ key }: any) => {
@@ -82,46 +85,55 @@ const AppLayout: React.FC = () => {
 
   useEffect(() => {
     const fetchHeaderTitle = async () => {
-        if (activeMenuItem) {
-            setHeaderTitle(activeMenuItem.title);
-            return;
+      if (activeMenuItem) {
+        setHeaderTitle(activeMenuItem.title);
+        return;
+      }
+
+      let selectedCard: Picture | Poem | LiteraryMemory | undefined;
+
+      for (const item of menuItems) {
+        if (location.pathname.includes(item.path) && item.path !== '/') {
+          try {
+            const response = await axiosInstance({
+              method: 'GET',
+              url: `${item.path}/${id}`,
+            });
+            selectedCard = response.data; // Assuming the response contains the card data
+            break; // Exit the loop once we find the matching item
+          } catch (error) {
+            console.error('Error fetching data:', error);
+          }
         }
+      }
 
-        let selectedCard: Picture | Poem | LiteraryMemory | undefined;
-
-        for (const item of menuItems) {
-            if (location.pathname.includes(item.path) && item.path !== '/') {
-                try {
-                    const response = await axiosInstance({
-                        method: 'GET',
-                        url: `${item.path}/${id}`,
-                    });
-                    selectedCard = response.data; // Assuming the response contains the card data
-                    break; // Exit the loop once we find the matching item
-                } catch (error) {
-                    console.error('Error fetching data:', error);
-                }
-            }
-        }
-
-        setHeaderTitle(`جزئیات ${selectedCard?.title || ''}`);
+      setHeaderTitle(`جزئیات ${selectedCard?.title || ''}`);
     };
 
     fetchHeaderTitle();
-}, [activeMenuItem, menuItems, location.pathname, id]);
+  }, [activeMenuItem, menuItems, location.pathname, id]);
+
+  const [currentUser, setCurrentUser] = useState<User | undefined>(undefined);
+
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      if (localStorage.getItem('token')) {
+        try {
+          const response = await axiosInstance.get('/users/me');
+          setCurrentUser(response.data);
+        } catch (error) {
+          console.error('Error fetching user data:', error);
+        }
+      }
+    };
+
+    if(!currentUser) fetchCurrentUser();
+  }, [localStorage.getItem('token'), currentUser]);
 
   const HeaderIcon = activeMenuItem?.icon || menuItems.find((item) => location.pathname.includes(item.path) && item.path !== '/')?.icon;
 
-  const handleSignup = () => {
-    setIsSignupModalVisible(true);
-  };
-
   const handleLogin = () => {
     setIsLoginModalVisible(true);
-  };
-
-  const handleSignupCancel = () => {
-    setIsSignupModalVisible(false);
   };
 
   const handleLoginCancel = () => {
@@ -134,25 +146,25 @@ const AppLayout: React.FC = () => {
         ورود
       </Menu.Item>
       <Menu.Item key="2" icon={<UserAddOutlined />} onClick={() => {
-        setFormHeader('ثبت‌نام');
-        handleSignup();
+        setShowSignup(true);
       }}>
         ثبت‌نام
       </Menu.Item>
     </Menu>
   );
 
-  const [formHeader, setFormHeader] = useState('ثبت‌نام');
-
   const menu = (
     <Menu onClick={handleMenuClick}>
       <Menu.Item key="edit" onClick={() => {
-        handleSignup();
-        setFormHeader('ویرایش کاربر');
+        setShowEdit(true);
       }} icon={<EditOutlined />}>
         ویرایش حساب کاربری
       </Menu.Item>
-      <Menu.Item key="logout" icon={<LogoutOutlined />}>
+      <Menu.Item key="logout" icon={<LogoutOutlined />} onClick={() => {
+        localStorage.removeItem('token');
+        setCurrentUser(undefined);
+        notification.success({message: 'خروج با موفقیت انجام شد'});
+      }} >
         خروج
       </Menu.Item>
     </Menu>
@@ -169,198 +181,72 @@ const AppLayout: React.FC = () => {
       }}
     >
       <Layout className="min-h-screen dark:bg-gray-900" dir="rtl">
-        {/* Signup Modal */}
-        <Modal
-          title={<div className='text-center pt-4'>{formHeader}</div>}
-          visible={isSignupModalVisible}
-          onCancel={handleSignupCancel}
-          footer={null}
-          width={300}
-          centered
-        >
-          <Form
-            layout="vertical"
-            className='p-3'
-            onFinish={() => {
-              handleSignupCancel();
-              notification.success({ message: 'ثبت‌نام با موفقیت انجام شد' });
-            }}
-          >
-            <Form.Item name="firstName" rules={[{ required: true, message: message('نام') }]}>
-              <Input placeholder="نام" />
-            </Form.Item>
+        <UserForm
+          mode="signup"
+          visible={showSignup}
+          onCancel={() => setShowSignup(false)}
+          onSuccess={() => {
+            setShowSignup(false);
+          }}
+        />
 
-            <Form.Item name="lastName" rules={[{ required: true, message: message("نام خانوادگی") }]}>
-              <Input placeholder="نام خانوادگی" />
-            </Form.Item>
+        <UserForm
+          mode="edit"
+          user={currentUser}
+          visible={showEdit}
+          onCancel={() => setShowEdit(false)}
+          onSuccess={() => {
+            setShowEdit(false);
+          }}
+        />
 
-            <Form.Item name="email" rules={[{ required: true, message: message('ایمیل') }, { type: 'email', message: 'ایمیل معتبر وارد کنید' }]}>
-              <Input placeholder="ایمیل" />
-            </Form.Item>
+        <LoginModal onCancel={handleLoginCancel} visible={isLoginModalVisible} setShowSignup={setShowSignup} onSuccess={handleLoginCancel} />
 
-            <Form.Item name="password" rules={[{ required: true, message: 'لطفاً رمز عبور را وارد کنید' }]}>
-              <Input.Password placeholder="رمز عبور" />
-            </Form.Item>
-
-            <Form.Item name="confirmPassword" rules={[{ required: true, message: 'لطفاً تکرار رمز عبور را وارد کنید' }]}>
-              <Input.Password placeholder="تکرار رمز عبور" />
-            </Form.Item>
-
-            <Form.Item label="آپلود عکس پروفایل" name="avatar" valuePropName="fileList" getValueFromEvent={(e) => e && e.fileList}>
-              <Upload
-                name="avatar"
-                action="/upload" // Set your upload endpoint here
-                listType="picture"
-                showUploadList={{ showRemoveIcon: true }}
-                beforeUpload={(file) => {
-                  const isImage = file.type.startsWith('image/');
-                  if (!isImage) {
-                    notification.error({ message: 'لطفاً یک فایل تصویری آپلود کنید' });
-                  }
-                  return isImage;
-                }}
-                onChange={({ file, /* fileList */ }) => {
-                  if (file.status === 'done') {
-                    notification.success({ message: `${file.name} فایل با موفقیت آپلود شد` });
-                  } else if (file.status === 'error') {
-                    notification.error({ message: `${file.name} آپلود ناموفق بود` });
-                  }
-                }}
-              >
-                <Button icon={<UploadOutlined />} block>آپلود عکس</Button>
-              </Upload>
-            </Form.Item>
-
-            <Form.Item>
-              <Button type="primary" block size="large" htmlType="submit" style={{ backgroundColor: '#1D4ED8', borderColor: '#1D4ED8' }}>
-                {formHeader}
-              </Button>
-            </Form.Item>
-          </Form>
-        </Modal>
-
-        {/* Login Modal */}
-        <Modal
-          title={<div className='text-center pt-4'>ورود</div>}
-          visible={isLoginModalVisible}
-          onCancel={handleLoginCancel}
-          footer={null}
-          width={300}
-          centered
-        >
-          <Form
-            layout="vertical"
-            className='p-3'
-            onFinish={() => {
-              handleLoginCancel();
-              notification.success({ message: 'ورود با موفقیت انجام شد' });
-            }}
-          >
-            <Form.Item name="email" rules={[{ required: true, message: 'لطفاً ایمیل را وارد کنید' }]}>
-              <Input placeholder="ایمیل" />
-            </Form.Item>
-
-            <Form.Item name="password" rules={[{ required: true, message: 'لطفاً رمز عبور را وارد کنید' }]}>
-              <Input.Password placeholder="رمز عبور" />
-            </Form.Item>
-
-            <Form.Item>
-              <Button type="primary" block size="large" htmlType="submit">
-                ورود
-              </Button>
-            </Form.Item>
-
-            <Form.Item>
-              <Button type="text" block onClick={() => {
-                handleLoginCancel();
-                handleSignup();
-              }}>
-                ثبت‌نام
-              </Button>
-            </Form.Item>
-          </Form>
-        </Modal>
-
-        {isMobile ? (
-          <Drawer
-            closeIcon={false}
-            placement="left"
-            visible={drawerVisible}
-            onClose={toggleDrawer}
-            onClick={toggleDrawer}
-            className='dark:!bg-blue-950 !bg-opacity-95 dark:!bg-opacity-95 !bg-blue-900'
-            width={250}
-          >
-            <div className="m-4">
-              <img
-                src="https://cdn.tarhbama.com/1400/Image/2021/11/25/7/filelogo.jpg"
-                alt="Logo"
-                className="w-full rounded-full"
-              />
-            </div>
-            <SidebarMenu />
-          </Drawer>
-        ) : (
-          <Sider
-            collapsible
-            breakpoint="lg"
-            collapsedWidth="80"
-            className="bg-blue-900 dark:bg-blue-950 fixed h-full z-50"
-            onCollapse={(collapsedState) => setCollapsed(collapsedState)}
-          >
-            <div className='overflow-hidden h-full'>
-              <div className="m-4">
-                <img
-                  src="https://cdn.tarhbama.com/1400/Image/2021/11/25/7/filelogo.jpg"
-                  alt="Logo"
-                  className="w-full rounded-full"
-                />
-              </div>
-              <SidebarMenu />
-            </div>
-          </Sider>
-        )}
+        <Sidebar drawerVisible={drawerVisible} isMobile={isMobile} toggleDrawer={toggleDrawer} setCollapsed={setCollapsed} />
 
         <div className='flex flex-wrap items-center fixed left-0 top-1 justify-end py-3 pl-6 pr-32 z-50 gap-3'>
           <div className="flex items-center">
             <div className="block sm:hidden">
-              <Dropdown overlay={signinOrSignupMenu} trigger={['click']}>
-                <Button
-                  type="text"
-                  className="rounded-full p-1"
-                  icon={<LockOutlined />}
-                />
-              </Dropdown>
+              {!currentUser && (
+                <Dropdown overlay={signinOrSignupMenu} trigger={['click']}>
+                  <Button
+                    type="text"
+                    className="rounded-full p-1"
+                    icon={<LockOutlined />}
+                  />
+                </Dropdown>
+              )}
             </div>
-            <div className="hidden sm:flex space-x-2">
-              <Tooltip title="ورود" placement="bottom">
-                <Button
-                  type="text"
-                  className="rounded-full px-3 text-white"
-                  icon={<LoginOutlined />}
-                  onClick={handleLogin}
-                >
-                  ورود
-                </Button>
-              </Tooltip>
-              <Tooltip title="ثبت‌نام" placement="bottom">
-                <Button
-                  type="text"
-                  className="rounded-full px-3 text-white"
-                  icon={<UserAddOutlined />}
-                  onClick={() => {
-                    setFormHeader('ثبت‌نام');
-                    handleSignup();
-                  }}
-                >
-                  ثبت‌نام
-                </Button>
-              </Tooltip>
-            </div>
+            {!currentUser && (
+              <div className="hidden sm:flex space-x-2">
+                <Tooltip title="ورود" placement="bottom">
+                  <Button
+                    type="text"
+                    className="rounded-full px-3 text-white"
+                    icon={<LoginOutlined />}
+                    onClick={handleLogin}
+                  >
+                    ورود
+                  </Button>
+                </Tooltip>
+                <Tooltip title="ثبت‌نام" placement="bottom">
+                  <Button
+                    type="text"
+                    className="rounded-full px-3 text-white"
+                    icon={<UserAddOutlined />}
+                    onClick={() => setShowSignup(true)}
+                  >
+                    ثبت‌نام
+                  </Button>
+                </Tooltip>
+              </div>
+            )}
           </div>
-          <Dropdown overlay={menu} placement="bottomLeft" trigger={['click']}>
-            <Button type='text' icon={<Avatar size={isMobile ? undefined : 45} icon={<UserOutlined />} />} className="cursor-pointer rounded-full" />
-          </Dropdown>
+          {currentUser && (
+            <Dropdown overlay={menu} placement="bottomLeft" trigger={['click']}>
+              <Button type='text' icon={<Avatar src={currentUser?.avatar} size={isMobile ? undefined : 45} icon={!currentUser?.avatar ? <UserOutlined /> : null} />} className="cursor-pointer rounded-full" />
+            </Dropdown>
+          )}
           {
             isMobile ? (
               <Button

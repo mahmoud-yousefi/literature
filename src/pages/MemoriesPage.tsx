@@ -4,6 +4,7 @@ import EmptyState from '../components/EmptyState';
 import { PlusOutlined, SearchOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../api';
+import { AxiosError } from 'axios';
 
 export type LiteraryMemory = {
   id: string | number;
@@ -42,7 +43,7 @@ const MemoriesPage: React.FC = () => {
       }
     };
 
-    window.scrollTo(0,0);
+    window.scrollTo(0, 0);
 
     fetchMemories();
   }, []);
@@ -65,7 +66,7 @@ const MemoriesPage: React.FC = () => {
         const formData = new FormData();
         formData.append('title', newMemory.title);
         formData.append('content', newMemory.content || '');
-        if(newMemory.file) formData.append('file', newMemory.file);
+        if (newMemory.file) formData.append('file', newMemory.file);
 
         const response = await axiosInstance.post('/memories', formData, {
           headers: {
@@ -78,11 +79,17 @@ const MemoriesPage: React.FC = () => {
         setNewMemory({ title: '', content: '', previewUrl: '', file: undefined });
         setIsModalVisible(false);
       } catch (error) {
-        console.error('Error adding picture:', error);
-        notification.error({ message: 'خطا در افزودن تصویر. لطفاً دوباره تلاش کنید.' });
+        console.error('Error adding memory:', error);
+
+        // Type-safe error handling
+        let errorMessage = 'خطا در افزودن خاطره. لطفاً دوباره تلاش کنید.';
+        if (error instanceof AxiosError && error.response) {
+          errorMessage = error.response.data.message || errorMessage;
+        }
+        notification.error({ message: errorMessage });
 
         try {
-          const response = await axiosInstance.get('/pictures');
+          const response = await axiosInstance.get('/memories');
           setMemories(response.data);
         } catch (fetchError) {
           console.error('Error fetching pictures:', fetchError);
@@ -157,10 +164,10 @@ const MemoriesPage: React.FC = () => {
                   cover={
                     memory.url ? (
                       <Image
-                      alt={memory.title}
-                      src={memory.url}
-                      className="h-48 object-cover"
-                    />
+                        alt={memory.title}
+                        src={memory.url}
+                        className="h-48 object-cover"
+                      />
                     ) : null
                   }
                   className="dark:bg-gray-800"
