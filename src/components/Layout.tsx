@@ -25,14 +25,6 @@ const AppLayout: React.FC = () => {
   const [showEdit, setShowEdit] = useState(false);
   const [isLoginModalVisible, setIsLoginModalVisible] = useState(false);
 
-  const handleMenuClick = ({ key }: any) => {
-    if (key === 'edit') {
-      console.log('Edit Account');
-    } else if (key === 'logout') {
-      // setUserAvatar(null);
-    }
-  };
-
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth <= 768);
@@ -154,7 +146,7 @@ const AppLayout: React.FC = () => {
   );
 
   const menu = (
-    <Menu onClick={handleMenuClick}>
+    <Menu>
       <Menu.Item key="edit" onClick={() => {
         setShowEdit(true);
       }} icon={<EditOutlined />}>
@@ -197,6 +189,7 @@ const AppLayout: React.FC = () => {
           onCancel={() => setShowEdit(false)}
           onSuccess={() => {
             setShowEdit(false);
+            setCurrentUser(undefined);
           }}
         />
 
@@ -244,7 +237,7 @@ const AppLayout: React.FC = () => {
           </div>
           {currentUser && (
             <Dropdown overlay={menu} placement="bottomLeft" trigger={['click']}>
-              <Button type='text' icon={<Avatar src={currentUser?.avatar} size={isMobile ? undefined : 45} icon={!currentUser?.avatar ? <UserOutlined /> : null} />} className="cursor-pointer rounded-full" />
+              <Button type='text' icon={<Avatar key={currentUser?.avatar} src={currentUser?.avatar} size={isMobile ? undefined : 45} icon={!currentUser?.avatar ? <UserOutlined /> : null} />} className="cursor-pointer rounded-full" />
             </Dropdown>
           )}
           {

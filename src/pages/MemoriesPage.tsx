@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Input, List, Card, Button, notification, Pagination, Modal, Upload, Image } from 'antd';
+import { Input, List, Card, Button, notification, Pagination, Modal, Upload, Image, Form } from 'antd';
 import EmptyState from '../components/EmptyState';
 import { PlusOutlined, SearchOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
@@ -203,7 +203,10 @@ const MemoriesPage: React.FC = () => {
       <Modal
         title={<div className='w-full text-center p-4'>افزودن خاطره جدید</div>}
         open={isModalVisible}
-        onCancel={() => setIsModalVisible(false)}
+        onCancel={() => {
+          setIsModalVisible(false);
+          setNewMemory({ title: '', content: '', previewUrl: '', date: '' })
+        }}
         onOk={handleAddMemory}
         footer={null}
         className='p-2'

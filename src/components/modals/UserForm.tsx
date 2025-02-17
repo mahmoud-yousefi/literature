@@ -17,49 +17,79 @@ const UserForm: React.FC<UserFormProps> = ({ mode, user, onSuccess, onCancel, vi
   const [previewAvatar, setPreviewAvatar] = useState<string>(user?.avatar || '');
   const [file, setFile] = useState<File>();
 
+  // useEffect(() => {
+  //   if (user) {
+  //     form.setFieldsValue(user);
+  //     setPreviewAvatar(user.avatar || '');
+  //   }
+
+  // }, []);
+
+  //   useEffect(() => {
+  //     setNewData({
+  //       ...user,
+  //       previewUrl: user?.avatar ?? '',
+  //     })
+
+  //     window.scrollTo(0, 0);
+  // }, [user]);
+
   useEffect(() => {
     if (user) {
       form.setFieldsValue(user);
       setPreviewAvatar(user.avatar || '');
     }
+
   }, [user, form]);
 
+
+  // UserForm.tsx (fixed parts)
   const handleSubmit = async (values: any) => {
     try {
       const formData = new FormData();
-      
+
       // Required fields
       formData.append('firstName', values.firstName || '');
       formData.append('lastName', values.lastName || '');
       formData.append('email', values.email || '');
-  
+
       // Conditional fields
       if (values.password) {
         formData.append('password', values.password);
       }
-      if (file) {
-        formData.append('avatar', file);
+      if (values.hash) {
+        formData.append('hash', values.hash);
       }
-  
+      if (file) {
+        formData.append('file', file); // Changed from 'avatar' to 'file'
+      }
+
       if (mode === 'signup') {
-        const response = await axiosInstance.post('/auth/signup', formData);
+        const response = await axiosInstance.post('/auth/signup', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        });
         localStorage.setItem('token', response.data.access_token);
         notification.success({ message: 'ثبت‌نام موفقیت آمیز بود' });
       } else if (user?.id) {
-        await axiosInstance.put(`/users/${user.id}`, formData);
+        await axiosInstance.put(`/users/${user.id}`, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        });
         notification.success({ message: 'پروفایل با موفقیت به روزرسانی شد' });
       }
-  
+
       onSuccess();
       handleReset();
     } catch (error) {
-        console.log(error);
+      console.log(error);
       notification.error({ message: 'خطا در انجام عملیات' });
     }
   };
 
   const handleReset = () => {
-    form.resetFields();
     setPreviewAvatar('');
     setFile(undefined);
     onCancel();
@@ -130,7 +160,7 @@ const UserForm: React.FC<UserFormProps> = ({ mode, user, onSuccess, onCancel, vi
           label="نام"
           rules={[{ required: true, message: 'لطفاً نام خود را وارد کنید' }]}
         >
-          <Input prefix={<UserOutlined />} />
+          <Input prefix={<UserOutlined />} name='firstName' />
         </Form.Item>
 
         <Form.Item
@@ -138,7 +168,7 @@ const UserForm: React.FC<UserFormProps> = ({ mode, user, onSuccess, onCancel, vi
           label="نام خانوادگی"
           rules={[{ required: true, message: 'لطفاً نام خانوادگی خود را وارد کنید' }]}
         >
-          <Input prefix={<UserOutlined />} />
+          <Input prefix={<UserOutlined />} name='lastName' />
         </Form.Item>
 
         <Form.Item
@@ -149,39 +179,49 @@ const UserForm: React.FC<UserFormProps> = ({ mode, user, onSuccess, onCancel, vi
             { type: 'email', message: 'ایمیل معتبر وارد کنید' }
           ]}
         >
-          <Input prefix={<MailOutlined />} />
+          <Input prefix={<MailOutlined />} name='email' />
+        </Form.Item>
+        
+        <Form.Item
+          name={mode === 'signup' ? "password" : "hash"}
+          label={mode === 'signup' ? "رمز عبور" : "رمز عبور جدید"}
+          rules={[
+            // Required only in signup mode
+            mode === 'signup' ? {
+              required: true,
+              message: 'لطفاً رمز عبور را وارد کنید'
+            } : {}
+          ]}
+        >
+          <Input.Password prefix={<LockOutlined />} name={mode === 'signup' ? "password" : "hash"} />
         </Form.Item>
 
-        {mode === 'signup' && (
-          <>
-            <Form.Item
-              name="password"
-              label="رمز عبور"
-              rules={[{ required: true, message: 'لطفاً رمز عبور را وارد کنید' }]}
-            >
-              <Input.Password prefix={<LockOutlined />} />
-            </Form.Item>
-
-            <Form.Item
-              name="confirmPassword"
-              label="تکرار رمز عبور"
-              dependencies={['password']}
-              rules={[
-                { required: true, message: 'لطفاً تکرار رمز عبور را وارد کنید' },
-                ({ getFieldValue }) => ({
-                  validator(_, value) {
-                    if (!value || getFieldValue('password') === value) {
-                      return Promise.resolve();
-                    }
-                    return Promise.reject('رمزهای عبور وارد شده مطابقت ندارند');
-                  },
-                }),
-              ]}
-            >
-              <Input.Password prefix={<LockOutlined />} />
-            </Form.Item>
-          </>
-        )}
+        <Form.Item
+          name="confirmHash"
+          label="تکرار رمز عبور"
+          dependencies={[mode === 'signup' ? "password" : "hash"]}
+          rules={[
+            // Required only if password is filled
+            ({ getFieldValue }) => ({
+              required: !!getFieldValue(mode === 'signup' ? "password" : "hash"),
+              message: 'لطفاً تکرار رمز عبور را وارد کنید',
+            }),
+            ({ getFieldValue }) => ({
+              validator(_, value) {
+                // Only validate if password has value
+                if (!value && !getFieldValue(mode === 'signup' ? "password" : "hash")) {
+                  return Promise.resolve();
+                }
+                if (getFieldValue(mode === 'signup' ? "password" : "hash") === value) {
+                  return Promise.resolve();
+                }
+                return Promise.reject('رمزهای عبور وارد شده مطابقت ندارند');
+              },
+            }),
+          ]}
+        >
+          <Input.Password prefix={<LockOutlined />} name={mode === 'signup' ? "confirmPassword" : "confirmHash"} />
+        </Form.Item>
 
         <div className="flex justify-end gap-4 mt-6">
           <Button onClick={handleReset}>لغو</Button>
