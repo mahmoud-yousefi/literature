@@ -93,7 +93,7 @@ const PicturesPage: React.FC = () => {
     }
   };
 
-  const handlePictureClick = (id: string) => {
+  const handlePictureClick = (id: string | number) => {
     navigate(`/pictures/${id}`);
   };
 

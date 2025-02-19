@@ -20,7 +20,7 @@ const PoemDetailPage: React.FC = () => {
     const [comments, setComments] = useState<UserComment[]>([]);
     const [newComment, setNewComment] = useState('');
     const [isCommentsExpanded, setIsCommentsExpanded] = useState(false);
-    const [isUnverifiedCommentsExpanded, setIsUnverifiedCommentsExpanded] = useState(false);
+    // const [isUnverifiedCommentsExpanded, setIsUnverifiedCommentsExpanded] = useState(false);
     const [isRelatedContentExpanded, setRelatedContentExpanded] = useState(false);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [newPoem, setNewPoem] = useState<{
@@ -75,9 +75,9 @@ const PoemDetailPage: React.FC = () => {
         setIsCommentsExpanded((prevState) => !prevState);
     };
 
-    const toggleUnverifiedCommentsVisibility = () => {
-        setIsUnverifiedCommentsExpanded((prevState) => !prevState);
-    };
+    // const toggleUnverifiedCommentsVisibility = () => {
+    //     setIsUnverifiedCommentsExpanded((prevState) => !prevState);
+    // };
 
     const toggleRelatedContentVisibility = () => {
         setRelatedContentExpanded((prevState) => !prevState);
